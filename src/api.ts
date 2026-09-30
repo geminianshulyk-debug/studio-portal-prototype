@@ -223,7 +223,7 @@ export function postFeedback(d: DB, actor: User, input: FeedbackInput): Feedback
   const total = Math.round((Object.values(scores).reduce((a, b) => a + b, 0) / max) * 100);
   const f: Feedback = {
     id: uid('fb'), unitId: sub.unitId, studentId: sub.studentId, version: sub.version, submissionId: sub.id, createdAt: nowIso(), byId: actor.id,
-    scores, total, autoSummary: autoSummary(task, scores, sub.unticked), comment: input.comment, annotations: input.annotations, decision: input.decision, gradeHistory: [], read: false,
+    scores, total, autoSummary: autoSummary(task, scores, sub.unticked), comment: input.comment, annotations: input.annotations.map((a) => ({ ...a, by: actor.id })), decision: input.decision, gradeHistory: [], read: false,
   };
   d.feedback.push(f);
   audit(d, actor, 'feedback.post', 'Feedback', f.id, `${actor.name} graded ${userName(d, sub.studentId)} · ${task.title} v${sub.version}: ${total}% (${input.decision})`, { after: String(total) });

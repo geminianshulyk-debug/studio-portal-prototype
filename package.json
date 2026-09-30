@@ -15,7 +15,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.9.1",
-    "@tanstack/react-table": "^9.2.4",
+    "@tanstack/react-table": "^8.21.3",
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "@uppy/core": "^6.1.0",
