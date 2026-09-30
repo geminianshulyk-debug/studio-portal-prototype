@@ -44,11 +44,11 @@ let seq = 0;
 const uid = (p: string) => `${p}-${Date.now().toString(36)}${(seq++).toString(36)}`;
 
 function need(actor: User, action: string, sub: string, obj?: object) {
-  const ok = abilityFor(actor).can(action, obj ? subject(sub, obj as never) : sub);
+  const ok = abilityFor(actor).can(action, obj ? subject(sub, { ...(obj as object) } as never) : sub);
   if (!ok) throw new Blocked('forbidden', `Your role (${actor.role}) is not permitted to ${action} ${sub}.`);
 }
 export const can = (actor: User, action: string, sub: string, obj?: object) =>
-  abilityFor(actor).can(action, obj ? subject(sub, obj as never) : sub);
+  abilityFor(actor).can(action, obj ? subject(sub, { ...(obj as object) } as never) : sub);
 
 function audit(d: DB, actor: User | { id: string; role: User['role'] }, action: string, entity: string, entityId: string, summary: string, extra: { before?: string; after?: string; justification?: string } = {}) {
   d.audit.unshift({ id: uid('au'), at: nowIso(), actorId: actor.id, actorRole: actor.role, action, entity, entityId, summary, ...extra });
@@ -429,7 +429,7 @@ export function applyXp(d: DB, _actor: User, req: XpRequest, awards: XpAward[]) 
   let gained = 0;
   for (const a of awards) {
     if (d.xpEvents.some((e) => e.studentId === req.studentId && e.ruleId === a.ruleId && e.unitId === req.unitId && e.version === req.version && req.unitId)) continue;
-    d.xpEvents.push({ id: uid('xp'), studentId: req.studentId, points: a.points, label: `${a.label}${req.label && a.label !== req.label ? ` · ${req.label}` : ''}`, unitId: req.unitId, version: req.version, ruleId: a.ruleId, kind: 'auto', byId: 'system', at: nowIso() });
+    d.xpEvents.push({ id: uid('xp'), studentId: req.studentId, points: a.points, label: !req.label || req.label.startsWith(a.label) ? (req.label || a.label) : `${a.label} · ${req.label}`, unitId: req.unitId, version: req.version, ruleId: a.ruleId, kind: 'auto', byId: 'system', at: nowIso() });
     gained += a.points;
   }
   if (!gained) return;
