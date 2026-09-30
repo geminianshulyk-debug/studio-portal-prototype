@@ -43,7 +43,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* ---------- shell (Jakob's Law: sidebar + top bar + cards like familiar productivity tools) ---------- */
-.shell { display: grid; grid-template-columns: 236px 1fr; height: 100%; }
+.shell { display: grid; grid-template-columns: 236px 1fr; height: 100vh; }
 .side { background: var(--side); color: var(--side-ink); overflow-y: auto; padding: var(--s4) var(--s3); display: flex; flex-direction: column; gap: var(--s4); border-right: 1px solid var(--line); }
 [data-mode='admin'] .side { border-right: 0; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px; font-weight: 800; letter-spacing: .02em; color: var(--side-active); font-size: 17px; }
@@ -68,7 +68,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 [data-mode='admin'] .card { padding: var(--s3) var(--s4); border-radius: 10px; }
 .card > .card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -2px 0 var(--s3); }
 .card.region { background: var(--surface-2); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line-2); background: var(--surface); padding: 7px 13px; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 13.5px; min-height: 34px; }
+.btn { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line-2); background: var(--surface); padding: 7px 13px; border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 13.5px; min-height: 34px; }
 .btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
 .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
 .btn.primary:hover { background: var(--primary-2); }
@@ -84,7 +84,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .bar { height: 10px; background: #e7e9f3; border-radius: 99px; overflow: hidden; }
 .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #7c6cf6, #5b3fd4); border-radius: 99px; transition: width .4s ease; }
 .bar.xp > i { background: linear-gradient(90deg, #fbbf24, #f59e0b); } .bar.ok > i { background: #22a055; } .bar.thin { height: 6px; }
-.field { display: flex; flex-direction: column; gap: 4px; } .field > label, .lbl { font-size: 12px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.field { display: flex; flex-direction: column; gap: 4px; } .field > label, .lbl { white-space: nowrap; font-size: 12px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
 input[type='text'], input[type='number'], input[type='date'], input[type='datetime-local'], input[type='url'], select, textarea { border: 1px solid var(--line-2); border-radius: var(--radius); padding: 7px 10px; background: var(--surface); width: 100%; min-height: 34px; }
 textarea { resize: vertical; min-height: 70px; }
 .err { color: var(--danger); font-size: 12.5px; font-weight: 600; }
@@ -130,7 +130,9 @@ table.plain td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertica
 .tag-cell { color: var(--ink-3); font-size: 12px; }
 .gantt-host { overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .gantt-host .gantt-container { min-height: 340px; }
-.bar-wrapper.ca1 .bar { fill: #7c6cf6; } .bar-wrapper.ca2 .bar { fill: #0b6aa8; } .bar-wrapper.ca3 .bar { fill: #157f3c; } .bar-wrapper.plan .bar { fill: #a3a9c4; } .bar-wrapper.review .bar { fill: #c2710c; }
+.gantt-host .bar-wrapper.ca1 { --g-bar-color: #7c6cf6; --g-progress-color: #4338ca; } .gantt-host .bar-wrapper.ca2 { --g-bar-color: #0b6aa8; --g-progress-color: #084a77; } .gantt-host .bar-wrapper.ca3 { --g-bar-color: #157f3c; --g-progress-color: #0d5a29; }
+.gantt-host .bar-wrapper.plan { --g-bar-color: #a3a9c4; --g-progress-color: #7e85a6; } .gantt-host .bar-wrapper.review { --g-bar-color: #c2710c; --g-progress-color: #8a4f08; }
+.gantt-host .bar-wrapper .bar-label { fill: #141a2e; }
 
 /* ---------- student: quest map ---------- */
 .quest-path { position: relative; display: flex; flex-direction: column; gap: 0; padding: var(--s3) 0; }
@@ -183,3 +185,5 @@ table.plain td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertica
   .content { padding: var(--s3); }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.topbar select { max-width: 270px; text-overflow: ellipsis; }
+.topbar .switcher select { min-width: 190px; }
