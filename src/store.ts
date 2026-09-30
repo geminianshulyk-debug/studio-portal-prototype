@@ -37,13 +37,13 @@ interface State {
   reset: () => void;
   cmd: Cmd;
   /** run a command as a specific actor (used by the integrity lab to attempt attacks as other roles) */
-  cmdAs: (userId: string) => Cmd;
+  cmdAs: (userId: string, quiet?: boolean) => Cmd;
 }
 
 const prefs = api.loadPrefs();
 let flushing = false;
 
-function makeCmd(getActor: () => User, set: (fn: (s: State) => Partial<State>) => void, get: () => State): Cmd {
+function makeCmd(getActor: () => User, set: (fn: (s: State) => Partial<State>) => void, get: () => State, quiet = false): Cmd {
   const out: Record<string, unknown> = {};
   for (const [name, fn] of Object.entries(COMMANDS)) {
     out[name] = (...args: unknown[]) => {
@@ -56,7 +56,7 @@ function makeCmd(getActor: () => User, set: (fn: (s: State) => Partial<State>) =
         return { ok: true, value };
       } catch (e) {
         if (e instanceof api.Blocked) {
-          toast.error(e.message, { description: `Blocked · ${e.code}` });
+          if (!quiet) toast.error(e.message, { description: `Blocked · ${e.code}` });
           return { ok: false, error: e.message, code: e.code };
         }
         console.error(e);
@@ -99,7 +99,7 @@ export const useStore = create<State>((set, get) => {
     setCourse: (id) => { api.savePrefs({ userId: get().userId, courseId: id }); set(() => ({ courseId: id })); },
     reset: () => { set(() => ({ db: api.resetDb() })); toast.success('Demo data reset to seed'); },
     cmd: makeCmd(actor, set, get),
-    cmdAs: (userId) => makeCmd(() => get().db.users.find((u) => u.id === userId)!, set, get),
+    cmdAs: (userId, quiet = false) => makeCmd(() => get().db.users.find((u) => u.id === userId)!, set, get, quiet),
   };
 });
 
