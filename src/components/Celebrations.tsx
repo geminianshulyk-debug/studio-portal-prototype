@@ -3,7 +3,7 @@ import { ArrowRight, Hammer, KeyRound, Star } from 'lucide-react';
 import { useCmd, useDb, useUser } from '../store';
 
 // Paper scraps and marker dots in the brand palette.
-const COLORS = ['#e8452c', '#1f3fbf', '#c9962a', '#3e6b48', '#1b1a17', '#f6e9c9'];
+const COLORS = ['var(--brand)', 'var(--info)', 'var(--brass-bright)', 'var(--moss-bright)', 'var(--ink)', 'var(--tint-butter)'];
 /** Peak-End Rule: rank-ups, quest clears and milestone unlocks get a distinct full-screen moment. */
 export default function Celebrations() {
   const db = useDb(), user = useUser(), cmd = useCmd();

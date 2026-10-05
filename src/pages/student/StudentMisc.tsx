@@ -3,6 +3,7 @@ import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } fro
 import { useCmd, useDb, useNow, useStore, useUser } from '../../store';
 import { Bell, ExternalLink, Hammer, KeyRound, MessageSquareText, Rocket, Sparkles, Star, Trophy, type LucideIcon } from 'lucide-react';
 import { Badge, Banner, Bar, Card, Due, Empty, PageHead } from '../../components/ui';
+import { tok } from '../../lib/display';
 import { countdown } from '../../lib/time';
 import { fmtDateTime, outcomeAttainment, rankFor, remindersFor, xpTotal, coAttainment } from '../../lib/selectors';
 import { ipBadge } from '../admin/IPPage';
@@ -31,7 +32,7 @@ export function XPSkills() {
         </Card>
         <div className="grid2">
           <Card title="Skill tracks (PSO)">
-            <div style={{ height: 220 }} role="img" aria-label="Radar of PSO skill tracks"><ResponsiveContainer><RadarChart data={radar}><PolarGrid stroke="#e2dacb" /><PolarAngleAxis dataKey="key" tick={{ fontSize: 12, fill: '#4a463f' }} /><Radar dataKey="v" stroke="#1f3fbf" fill="#1f3fbf" fillOpacity={0.18} strokeWidth={2} /></RadarChart></ResponsiveContainer></div>
+            <div style={{ height: 220 }} role="img" aria-label="Radar of PSO skill tracks"><ResponsiveContainer><RadarChart data={radar}><PolarGrid stroke={tok('--line')} /><PolarAngleAxis dataKey="key" tick={{ fontSize: 12, fill: tok('--ink-2') }} /><Radar dataKey="v" stroke={tok('--info')} fill={tok('--info')} fillOpacity={0.18} strokeWidth={2} /></RadarChart></ResponsiveContainer></div>
             {psos.map((p) => { const e = evidence(p.key); return <div key={p.key} style={{ marginTop: 6 }}><div className="row between small"><span><b>{p.key}</b> {p.title}</span>{e ? <span>{Math.round(att[p.key] ?? 0)}% · {e} evidence</span> : <Badge kind="warn">not started</Badge>}</div><Bar value={(att[p.key] ?? 0) / 100} kind="info" thin /></div>; })}
           </Card>
           <Card title="How XP is earned (transparent rules)">

@@ -5,16 +5,16 @@ import { Badge, Banner, Card, Field, PageHead } from '../../components/ui';
 import EditableGrid from '../../components/EditableGrid';
 import { numCol, textCol, type GCol } from '../../components/gridCols';
 import { useCan, useCourse } from './common';
+import { chartColors, tok } from '../../lib/display';
 import { coAttainment, engagement, outcomeAttainment, userName, type Engagement } from '../../lib/selectors';
 
 // Brand categorical palette, validated against the #faf6ee card surface (dataviz validate_palette: all checks pass).
 // Fixed order, never cycled: cobalt, vermilion, teal, brass, rose, violet. Text stays in ink tokens, never series colour.
-const PALETTE = ['#1f3fbf', '#d93c1a', '#16917a', '#a87a10', '#c2508a', '#5a4ab0'];
-const C1 = PALETTE[0], C2 = PALETTE[1];
-const INK = '#4a463f', GRID = '#e2dacb', SURFACE = '#faf6ee';
 type ERow = Engagement & { id: string; name: string; flag: string };
 
 export default function AnalyticsPage() {
+  const PALETTE = chartColors(), C1 = PALETTE[0], C2 = PALETTE[1];
+  const INK = tok('--ink-2'), GRID = tok('--line'), SURFACE = tok('--surface');
   const db = useDb(), course = useCourse(), cmd = useCmd(), can = useCan();
   const [who, setWho] = useState('cohort');
   const [table, setTable] = useState(false);

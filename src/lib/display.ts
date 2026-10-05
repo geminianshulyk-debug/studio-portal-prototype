@@ -26,3 +26,7 @@ export function shortName(name: string) {
 
 /** "Dr. Meera Kulkarni" → "MK"; titles and bracketed roles are ignored. */
 export const initials = (name: string) => name.replace(/\(.*?\)|Dr\.|Prof\./g, '').trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+/** Read a design token (CSS variable) for libraries that need literal colour values, e.g. charts and confetti. */
+export const tok = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+export const chartColors = () => [1, 2, 3, 4, 5, 6].map((n) => tok(`--chart-${n}`));

@@ -20,6 +20,8 @@
   --warn: #8f5a0b; --warn-weak: #f6e9c9;
   --danger: #b3261e; --danger-weak: #f9e0da;
   --info: #1f3fbf; --info-weak: #e6e8f2;
+  --tint-lilac: #efe1ef; --tint-mist: #dfeaee; --moss-bright: #3e6b48; --brass-bright: #c9962a; --plan-grey: #b8b09f; --review: #d9a21b;
+  --chart-1: #1f3fbf; --chart-2: #d93c1a; --chart-3: #16917a; --chart-4: #a87a10; --chart-5: #c2508a; --chart-6: #5a4ab0;
   --tint-butter: #f6e9c9; --tint-sky: #e6e7f0; --tint-blush: #f8e3d8; --tint-sage: #e6eada;
 
   --radius: 10px; --radius-lg: 16px; --radius-xl: 28px;

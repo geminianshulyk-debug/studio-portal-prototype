@@ -45,7 +45,7 @@ export function Hero({ eyebrow, title, sub, alert, actions, art, artKind = 'phot
   );
 }
 
-const TINTS = ['#f6e9c9', '#e6e7f0', '#f8e3d8', '#e6eada', '#efe1ef', '#dfeaee'];
+const TINTS = ['butter', 'sky', 'blush', 'sage', 'lilac', 'mist'].map((n) => `var(--tint-${n})`);
 export function Avatar({ id, name, sm }: { id: string; name: string; sm?: boolean }) {
   const tint = TINTS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
   return <span className={`avatar ${sm ? 'sm' : ''}`} style={{ background: tint }} title={name} aria-hidden>{initials(name)}</span>;
