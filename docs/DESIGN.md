@@ -7,9 +7,9 @@ PeerCycle (per milestone) 1—* PeerEval (evaluator→evaluatee incl. self; lock
 XPRule (JSON conditions) → XPEvent (auto/manual, with justification) → Rank. Project *—* Student with IPStatus + screening record + gate flags. Competition → CompEntry (marker, outcome). Notification, Celebration, AuditEntry (append-only).
 
 ## Sitemap
-- **Shell**: Feature Map · role switcher · course selector · notifications
-- **Instructor/Admin** — Teach: Course & outcomes (Basics | Matrix | Custom fields) · CA & tasks (task drawer: brief, rubric checklist, custom fields) · Gantt & plan · Resources · Group & peer (Roles | Cycles & weighting | Outlier review). Assess: Notification center · Grading queue (+ templates) · Analytics. Govern: IP screening · Competitions CMS · XP rule engine (Rules | Ranks | Ledger) · Audit log · Roles & access · Integrity lab
-- **Student** — Play: Dashboard · Quest map/Board (+ task drawer, upload) · Feedback inbox · Notifications. Grow: Peer evaluation & logs · XP & skills · Portfolio & IP · Competitions
+- **Shell**: top bar (wordmark · search / jump-to ⌘K · course chip · notifications bell · demo tools · role avatar chip) · sidebar (role pages, Prototype tour at the foot)
+- **Instructor/Admin** — Home (hero + waiting-on-you strip, courses, queue, due this week). Teach: Course & outcomes (Basics | Matrix | Custom fields) · CA & tasks (task drawer: brief, rubric checklist, custom fields) · Gantt & plan · Resources · Group & peer (Roles | Cycles & weighting | Outlier review). Assess: Notification center · Grading queue (+ templates) · Analytics. Govern: IP screening · Competitions CMS · XP rule engine (Rules | Ranks | Ledger) · Audit log · Roles & access · Integrity lab
+- **Student** — Home (hero + rank/status strip, modules, next up, latest feedback) · Quest map/Board (+ task drawer, upload) · Feedback · Peer review · Notifications (via the bell). Grow: XP & skills · Portfolio & IP · Competitions
 
 ## Key flows (all runnable)
 1. **Task → completion**: assigned → submit (Uppy, checklist) → instructor feedback (rubric + annotations) → pass ⇒ complete ⇒ XP (json-rules-engine) ⇒ rank-up moment; revise ⇒ v2 with its own feedback.

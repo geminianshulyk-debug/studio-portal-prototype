@@ -1,5 +1,7 @@
-import { useStore, useUser } from '../store';
-import { PageHead, Card, Badge } from '../components/ui';
+import { ArrowRight, BookOpen, Check, ChevronDown, Compass, Inbox, MessageSquareText, PenLine, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { homeOf, useStore, useUser } from '../store';
+import { Badge, Hero } from '../components/ui';
+import handles from '../assets/hero-handles.webp';
 
 interface Mod { id: string; side: 'admin' | 'student'; title: string; desc: string; page?: string; tag?: string }
 const MODS: Mod[] = [
@@ -55,45 +57,71 @@ export default function FeatureMap() {
   const user = useUser();
   const { setPage, setUser } = useStore();
   const side = user.role === 'student' ? 'student' : 'admin';
+  const enter = (s: 'admin' | 'student') => (s === side ? setPage(homeOf(user.role)) : setUser(s === 'admin' ? 'u-inst' : 's1'));
   const go = (m: Mod) => {
     if (!m.page) return;
     if (m.side !== side) setUser(m.side === 'admin' ? 'u-inst' : 's1');
     setTimeout(() => setPage(m.page!), 0);
   };
-  const Grid = ({ s }: { s: 'admin' | 'student' }) => (
+  return (
+    <div className="col" style={{ gap: 28 }}>
+      <Hero eyebrow="B.Des Product Design · School of Design, MIT-WPU" art={handles}
+        title={<>One studio for teaching and <span className="mk">making</span><span className="tp">.</span></>}
+        sub="Briefs, feedback, peer reviews and portfolios — in one closed loop."
+        actions={<><button className="btn primary big" onClick={() => enter('student')}>Enter as a student <ArrowRight /></button><button className="textlink" onClick={() => enter('admin')}>Enter as an instructor</button></>} />
+
+      <div className="roles">
+        <section className="rolecard">
+          <div className="head"><span className="thumb butter" aria-hidden><Compass /></span><div><span className="eyebrow">For students</span><h2>Play &amp; grow</h2></div></div>
+          <ul>
+            <li><Compass aria-hidden />Every task is a quest on a map, in deadline order</li>
+            <li><MessageSquareText aria-hidden />Feedback lands in one inbox, tied to each version</li>
+            <li><Users aria-hidden />Fair peer review — locked on submit, outliers flagged</li>
+            <li><Sparkles aria-hidden />XP and ranks earned only through feedback</li>
+          </ul>
+          <div className="go"><button className="btn ink" onClick={() => enter('student')}>Open the student side <ArrowRight /></button></div>
+        </section>
+        <section className="rolecard">
+          <div className="head"><span className="thumb sky" aria-hidden><BookOpen /></span><div><span className="eyebrow">For instructors</span><h2>Teach, assess, govern</h2></div></div>
+          <ul>
+            <li><BookOpen aria-hidden />Courses, outcomes and tasks edited like a spreadsheet</li>
+            <li><PenLine aria-hidden />A grading queue with annotations and bulk templates</li>
+            <li><Inbox aria-hidden />One notification center so nothing depends on memory</li>
+            <li><ShieldCheck aria-hidden />IP screening gate, audit log and an integrity lab</li>
+          </ul>
+          <div className="go"><button className="btn ink" onClick={() => enter('admin')}>Open the instructor side <ArrowRight /></button></div>
+        </section>
+      </div>
+
+      <div className="col" style={{ gap: 12 }}>
+        <details className="more"><summary>All student modules <span className="n">{MODS.filter((m) => m.side === 'student').length}</span><ChevronDown aria-hidden /></summary><ModGrid s="student" side={side} go={go} /></details>
+        <details className="more"><summary>All instructor modules <span className="n">{MODS.filter((m) => m.side === 'admin').length}</span><ChevronDown aria-hidden /></summary><ModGrid s="admin" side={side} go={go} /></details>
+        <details className="more"><summary>How the loop stays closed <span className="n">{LOOP.length + LOOPHOLES.length} rules</span><ChevronDown aria-hidden /></summary>
+          <div className="grid2">
+            <div><h3 style={{ marginBottom: 8 }}>Closed-loop mechanics</h3><ul className="rules">{LOOP.map((l) => <li key={l}><Check aria-hidden />{l}</li>)}</ul></div>
+            <div><h3 style={{ marginBottom: 8 }}>Loophole prevention (enforced in the data layer)</h3><ul className="rules">{LOOPHOLES.map((l) => <li key={l}><Check aria-hidden />{l}</li>)}</ul>
+              <button className="btn sm" style={{ marginTop: 10 }} onClick={() => go({ id: 'x', side: 'admin', title: '', desc: '', page: 'integrity' })}>Try to break them <ArrowRight /></button></div>
+          </div>
+        </details>
+        <details className="more"><summary>UI/UX laws applied <span className="n">{LAWS.length}</span><ChevronDown aria-hidden /></summary>
+          <div className="grid3">{LAWS.map(([a, b]) => <div key={a}><b>{a}</b><div className="small muted">{b}</div></div>)}</div>
+        </details>
+      </div>
+      <p className="footnote">Prototype · mock data stored in this browser · switch roles from the avatar in the top bar</p>
+    </div>
+  );
+}
+
+function ModGrid({ s, side, go }: { s: 'admin' | 'student'; side: 'admin' | 'student'; go: (m: Mod) => void }) {
+  return (
     <div className="fmap">
       {MODS.filter((m) => m.side === s).map((m) => (
         <button key={m.id} className="card" onClick={() => go(m)} aria-label={`Open ${m.title}`}>
-          <div className="row between"><h3>{m.title}</h3>{m.tag && <Badge kind="info">{m.tag}</Badge>}</div>
+          <div className="row between" style={{ alignItems: 'flex-start' }}><h3>{m.title}</h3>{m.tag && <Badge kind="info">{m.tag}</Badge>}</div>
           <span className="small muted">{m.desc}</span>
-          <span className="small" style={{ color: 'var(--primary)' }}>{m.side !== side ? `Switch to ${m.side === 'admin' ? 'instructor' : 'student'} view →` : 'Open →'}</span>
+          <span className="go">{m.side !== side ? `Switch to ${m.side === 'admin' ? 'instructor' : 'student'} view` : 'Open'} <ArrowRight className="ico-svg" /></span>
         </button>
       ))}
-    </div>
-  );
-  return (
-    <div className="col" style={{ gap: 20 }}>
-      <div className="hero">
-        <h1 style={{ fontSize: 28 }}>STUDIO Portal — B.Des Product Design · School of Design, MIT-WPU</h1>
-        <p style={{ maxWidth: 780, marginTop: 8 }}>A closed-loop academic work platform: course delivery, individual accountability inside group work, an IP progression pipeline, a competitions board, and a gamified XP economy. This prototype runs on mock data with no backend; use <b>Viewing as</b> (top left) to switch between instructor, TA, co-instructor, Dean/HOD and student roles.</p>
-        <div className="row wrap" style={{ marginTop: 12 }}>
-          <button className="btn" style={{ background: '#fff', color: 'var(--primary-2)' }} onClick={() => go(MODS.find((m) => m.id === 'a1')!)}>Explore instructor side →</button>
-          <button className="btn" style={{ background: '#fff', color: 'var(--primary-2)' }} onClick={() => go(MODS.find((m) => m.id === 's2')!)}>Explore student side →</button>
-        </div>
-      </div>
-      <PageHead title="Instructor / Admin modules" sub="Everything is editable; nothing an instructor would reasonably change each semester is hard-coded." />
-      <Grid s="admin" />
-      <PageHead title="Student / Client modules" sub="Lighter, game-forward view on the same data and design system." />
-      <Grid s="student" />
-      <div className="grid2">
-        <Card title="Closed-loop mechanics"><ul style={{ margin: 0, paddingLeft: 18 }}>{LOOP.map((l) => <li key={l} className="small" style={{ marginBottom: 4 }}>{l}</li>)}</ul></Card>
-        <Card title="Loophole prevention (enforced in the data layer)" actions={<button className="btn sm" onClick={() => go({ id: 'x', side: 'admin', title: '', desc: '', page: 'integrity' })}>Try to break them →</button>}>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>{LOOPHOLES.map((l) => <li key={l} className="small" style={{ marginBottom: 4 }}>{l}</li>)}</ul>
-        </Card>
-      </div>
-      <Card title="UI/UX laws applied (each named in code comments and on key screens)">
-        <div className="grid3">{LAWS.map(([a, b]) => <div key={a}><b>{a}</b><div className="small muted">{b}</div></div>)}</div>
-      </Card>
     </div>
   );
 }
