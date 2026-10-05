@@ -7,10 +7,10 @@ export type GCol<T> = Column<T> & { kind?: Kind; options?: string[]; toText?: (r
 
 const base = { resizable: true, sortable: true } as const;
 
-export function textCol<T>(key: keyof T & string, name: string, o: Partial<GCol<T>> = {}): GCol<T> {
+export function textCol<T>(key: keyof T & string, name: Column<T>['name'], o: Partial<GCol<T>> = {}): GCol<T> {
   return { key, name, kind: 'text', renderEditCell: renderTextEditor, editable: true, ...base, ...o };
 }
-export function numCol<T>(key: keyof T & string, name: string, o: Partial<GCol<T>> = {}): GCol<T> {
+export function numCol<T>(key: keyof T & string, name: Column<T>['name'], o: Partial<GCol<T>> = {}): GCol<T> {
   function Ed({ row, column, onRowChange, onClose }: RenderEditCellProps<T>) {
     return (
       <input type="number" autoFocus style={{ width: '100%', height: '100%', border: 0, padding: '0 8px' }}

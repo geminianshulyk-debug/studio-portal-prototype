@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable, type SortingState } from '@tanstack/react-table';
 import { useCmd, useDb } from '../../store';
-import { Badge, Banner, Card, Field, Modal, PageHead, Tabs } from '../../components/ui';
+import { Badge, Banner, Card, Field, Modal, PageHead, Tabs , SortMark } from '../../components/ui';
 import EditableGrid, { newId } from '../../components/EditableGrid';
 import { boolCol, numCol, textCol, type GCol } from '../../components/gridCols';
 import { useCan, useGridCommit } from './common';
@@ -135,7 +135,7 @@ function Ledger() {
       )}
       <Card title={`XP ledger (${all.length} events)`}>
         <table className="plain">
-          <thead>{table.getHeaderGroups().map((hg) => <tr key={hg.id}>{hg.headers.map((h) => <th key={h.id} onClick={h.column.getToggleSortingHandler()}>{flexRender(h.column.columnDef.header, h.getContext())}{{ asc: ' ▲', desc: ' ▼' }[h.column.getIsSorted() as string] ?? ''}</th>)}</tr>)}</thead>
+          <thead>{table.getHeaderGroups().map((hg) => <tr key={hg.id}>{hg.headers.map((h) => <th key={h.id} onClick={h.column.getToggleSortingHandler()}>{flexRender(h.column.columnDef.header, h.getContext())}<SortMark dir={h.column.getIsSorted()} /></th>)}</tr>)}</thead>
           <tbody>{rows.map((r) => <tr key={r.id}>{r.getVisibleCells().map((c) => <td key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</td>)}</tr>)}</tbody>
         </table>
         <div className="row between" style={{ marginTop: 8 }}><span className="small muted">Page {page + 1} of {Math.ceil(all.length / PER)}</span>

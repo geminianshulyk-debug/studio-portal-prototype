@@ -26,7 +26,7 @@ export default function AnalyticsPage() {
   const outS = who === 'cohort' ? undefined : outcomeAttainment(db, [course.id], who);
   const radar = db.outcomes.map((o) => ({ key: o.key, Cohort: Math.round(outC[o.key] ?? 0), Student: outS ? Math.round(outS[o.key] ?? 0) : undefined }));
   const eng = useMemo(() => engagement(db, course.id), [db, course.id]);
-  const rows: ERow[] = eng.map((e) => ({ ...e, id: e.studentId, name: userName(db, e.studentId), flag: e.risks.length ? `⚠ ${e.risks.join(' · ')}` : 'OK' }));
+  const rows: ERow[] = eng.map((e) => ({ ...e, id: e.studentId, name: userName(db, e.studentId), flag: e.risks.length ? e.risks.join(' · ') : 'OK' }));
   const cols: GCol<ERow>[] = [
     textCol('name', 'Student', { width: 160, editable: false }),
     { key: 'sub', name: 'Submitted / due', width: 130, renderCell: ({ row }) => <span>{row.submitted}/{row.due} ({Math.round(row.submissionRate * 100)}%)</span> },

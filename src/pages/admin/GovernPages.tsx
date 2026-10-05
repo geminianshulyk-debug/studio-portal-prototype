@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, type SortingState } from '@tanstack/react-table';
 import { useCmd, useDb, useStore, useUser } from '../../store';
 import { Check } from 'lucide-react';
-import { Badge, Banner, Card, PageHead } from '../../components/ui';
+import { Badge, Banner, Card, PageHead , SortMark } from '../../components/ui';
 import { abilityFor, PERM_ACTIONS, PERM_SUBJECTS } from '../../lib/permissions';
 import { fmtDateTime, instructorAlerts, userName } from '../../lib/selectors';
 import type { AuditEntry, User } from '../../types';
@@ -28,7 +28,7 @@ export function AuditPage() {
         laws={['Nielsen — visibility of system status', 'Miller’s Law — 7 rows per page']} actions={<input type="search" placeholder="Search log…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 220 }} aria-label="Search audit log" />} />
       <Card>
         <table className="plain">
-          <thead>{table.getHeaderGroups().map((hg) => <tr key={hg.id}>{hg.headers.map((h) => <th key={h.id} onClick={h.column.getToggleSortingHandler()}>{flexRender(h.column.columnDef.header, h.getContext())}{{ asc: ' ▲', desc: ' ▼' }[h.column.getIsSorted() as string] ?? ''}</th>)}</tr>)}</thead>
+          <thead>{table.getHeaderGroups().map((hg) => <tr key={hg.id}>{hg.headers.map((h) => <th key={h.id} onClick={h.column.getToggleSortingHandler()}>{flexRender(h.column.columnDef.header, h.getContext())}<SortMark dir={h.column.getIsSorted()} /></th>)}</tr>)}</thead>
           <tbody>{table.getRowModel().rows.map((r) => <tr key={r.id}>{r.getVisibleCells().map((c) => <td key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</td>)}</tr>)}</tbody>
         </table>
         <div className="row between" style={{ marginTop: 8 }}>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { AlertTriangle, CheckCircle2, Clock, Info, OctagonAlert, Scale, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Info, OctagonAlert, Scale, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { countdown } from '../lib/time';
 import { initials } from '../lib/display';
 
@@ -135,3 +135,9 @@ export function Rte({ value, onChange, readOnly, placeholder }: { value: string;
   );
 }
 export const Html = ({ html }: { html: string }) => <div className="html-view" dangerouslySetInnerHTML={{ __html: html }} />;
+
+/** Sort direction marker for read-only tables (icon, not a text glyph). */
+export function SortMark({ dir }: { dir: false | 'asc' | 'desc' }) {
+  if (!dir) return null;
+  return dir === 'asc' ? <ChevronUp size={12} aria-label="sorted ascending" /> : <ChevronDown size={12} aria-label="sorted descending" />;
+}

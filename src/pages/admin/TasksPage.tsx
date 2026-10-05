@@ -10,6 +10,11 @@ import { useCan, useCourse, useGridCommit } from './common';
 import type { CA, RubricCriterion, Task } from '../../types';
 import { fmtDateTime } from '../../lib/selectors';
 
+import { Pencil } from 'lucide-react';
+
+/** Header for instructor-defined custom fields: pencil icon marks them as editable extras. */
+const customLabel = (label: string) => <span className="row" style={{ gap: 4 }}><Pencil size={12} aria-hidden />{label}</span>;
+
 type GRow = Task & { _ca: string; _co: string; [k: string]: unknown };
 
 const newTaskSchema = z.object({
@@ -64,7 +69,7 @@ export default function TasksPage() {
         } catch { return null; }
       },
     },
-    ...cfDefs.map((f) => (f.type === 'number' ? numCol<GRow>(`_cf_${f.id}`, `✎ ${f.label}`, { width: 150 }) : textCol<GRow>(`_cf_${f.id}`, `✎ ${f.label}`, { width: 150 }))),
+    ...cfDefs.map((f) => (f.type === 'number' ? numCol<GRow>(`_cf_${f.id}`, customLabel(f.label), { width: 150 }) : textCol<GRow>(`_cf_${f.id}`, customLabel(f.label), { width: 150 }))),
     { key: 'open', name: '', width: 92, sortable: false, resizable: false, renderCell: ({ row }) => <button className="btn sm" onClick={() => setOpen(row.id)}>Details ›</button> },
   ];
   const commitAdapter = (rows: GRow[], meta: never) => commitTasks(rows.map(fromGrid), meta);
@@ -145,7 +150,7 @@ function TaskDrawer({ taskId, onClose }: { taskId: string; onClose: () => void }
   const canEdit = can('update', 'Task'), canRubric = can('update', 'Rubric');
   const cfDefs = course.customFields.filter((f) => f.appliesTo === 'task');
   const rubCols: GCol<RubricCriterion>[] = [
-    textCol('text', 'Criterion', { width: 300 }), numCol('max', 'Max', { width: 80 }), boolCol('selfCheck', 'Student self-check ✓', { width: 150 }),
+    textCol('text', 'Criterion', { width: 300 }), numCol('max', 'Max', { width: 80 }), boolCol('selfCheck', 'Student self-check', { width: 150 }),
   ];
   const save = (patch: Partial<Task>, label: string) => cmd.updateTask(t.id, patch as never, t.rev, label);
   return (

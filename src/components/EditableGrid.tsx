@@ -1,4 +1,4 @@
-import { AlertTriangle, Plus, Redo2, Trash2, Undo2, X } from 'lucide-react';
+import { AlertTriangle, Copy, GripVertical, Plus, Redo2, Trash2, Undo2, X } from 'lucide-react';
 // Excel-style grid wrapper around react-data-grid (one library across every editable table).
 // Satisfies: inline cell editing, tab/arrow nav (RDG), copy/paste (incl. multi-cell TSV paste), fill-handle drag,
 // sort + filter on every column, inline row add/delete, drag-to-reorder (dnd-kit), undo/redo, concurrent-edit notice.
@@ -36,7 +36,7 @@ function DragCell({ id, disabled }: { id: string; disabled?: boolean }) {
   const dr = useDroppable({ id });
   return (
     <span ref={(n) => { d.setNodeRef(n); dr.setNodeRef(n); }} {...d.listeners} {...d.attributes}
-      className={`drag-h ${dr.isOver ? 'over' : ''}`} title={disabled ? 'Clear sort/filter to reorder' : 'Drag to reorder'} aria-label="Drag to reorder row" style={{ opacity: disabled ? 0.3 : 1, cursor: disabled ? 'not-allowed' : 'grab' }}>⠿</span>
+      className={`drag-h ${dr.isOver ? 'over' : ''}`} title={disabled ? 'Clear sort/filter to reorder' : 'Drag to reorder'} aria-label="Drag to reorder row" style={{ opacity: disabled ? 0.3 : 1, cursor: disabled ? 'not-allowed' : 'grab' }}><GripVertical size={16} aria-hidden /></span>
   );
 }
 
@@ -228,7 +228,7 @@ export default function EditableGrid<T extends R>(p: GridProps<T>) {
           <button className="btn sm" onClick={() => stepHistory('redo')} disabled={!redo.current.length} title="Redo (Ctrl+Y)"><Redo2 /> Redo</button>
         </>}
         {!readOnly && p.newRow && <>
-          <button className="btn sm" onClick={dup} disabled={!selRows.length}>⧉ Duplicate</button>
+          <button className="btn sm" onClick={dup} disabled={!selRows.length}><Copy /> Duplicate</button>
           <button className="btn sm" onClick={delSel} disabled={!selRows.length}><Trash2 /> Delete selected{selRows.length ? ` (${selRows.length})` : ''}</button>
         </>}
         {p.bulk?.(selRows, () => setSelected(new Set()))}
