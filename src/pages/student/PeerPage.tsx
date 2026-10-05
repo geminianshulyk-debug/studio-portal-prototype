@@ -97,11 +97,11 @@ function Logs({ taskId, memberIds }: { taskId: string; memberIds: string[] }) {
           <Field label="Hours (rough)"><input type="number" step={0.5} min={0} value={hours} onChange={(e) => setHours(e.target.value)} /></Field>
         </div>
         <input type="text" placeholder="What did you work on?" value={note} onChange={(e) => setNote(e.target.value)} style={{ marginTop: 8 }} />
-        <button className="btn primary" style={{ marginTop: 8 }} onClick={() => cmd.logEffort(taskId, m, Number(hours), note).ok && (setHours(''), setNote(''))}>Log effort</button>
+        <button className="btn" style={{ marginTop: 8 }} onClick={() => cmd.logEffort(taskId, m, Number(hours), note).ok && (setHours(''), setNote(''))}>Log effort</button>
         {myEffort.map((e) => <div key={e.id} className="small row between" style={{ padding: '4px 0', borderBottom: '1px solid var(--line)' }}><span>{ms.find((x) => x.id === e.milestoneId)?.title.split(' · ')[0]} · {e.hours}h · {e.note}</span><span className="muted">{fmtDateTime(e.at)}</span></div>)}
       </Card>
       <Card title="Team contribution log (timestamped, per person)">
-        <div className="row"><input type="text" placeholder="What did you just do for the team?" value={text} onChange={(e) => setText(e.target.value)} /><button className="btn primary" onClick={() => cmd.logContribution(taskId, m, text).ok && setText('')}>Add</button></div>
+        <div className="row"><input type="text" placeholder="What did you just do for the team?" value={text} onChange={(e) => setText(e.target.value)} /><button className="btn" onClick={() => cmd.logContribution(taskId, m, text).ok && setText('')}>Add</button></div>
         {team.map((c) => <div key={c.id} className="small row between" style={{ padding: '4px 0', borderBottom: '1px solid var(--line)' }}><span><b>{userName(db, c.studentId).split(' ')[0]}</b> · {c.text}</span><span className="muted">{fmtDateTime(c.at)}</span></div>)}
         {!team.length && <p className="muted small">No entries yet.</p>}
       </Card>

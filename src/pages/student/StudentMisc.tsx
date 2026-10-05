@@ -73,7 +73,7 @@ export function Portfolio() {
                 : <Banner kind="ok">Gate cleared — screened by the instructor team{p.screening ? ` on ${fmtDateTime(p.screening.at)}` : ''}.</Banner>}
               {p.screening && <p className="small muted">{p.screening.note}</p>}
               <div className="row wrap" style={{ marginTop: 8 }}>
-                <button className="btn primary" onClick={() => tryFlag(p.id, 'portfolioReady', !p.portfolioReady)}>{p.portfolioReady ? 'Portfolio-ready (undo)' : 'Mark portfolio-ready'}</button>
+                <button className={`btn ${p.id === mine.find((x) => !x.portfolioReady)?.id ? 'primary' : ''}`} onClick={() => tryFlag(p.id, 'portfolioReady', !p.portfolioReady)}>{p.portfolioReady ? 'Portfolio-ready (undo)' : 'Mark portfolio-ready'}</button>
                 <button className="btn" onClick={() => tryFlag(p.id, 'competitionEligible', !p.competitionEligible)}>{p.competitionEligible ? 'Competition-eligible (undo)' : 'Mark competition-eligible'}</button>
               </div>
               {msg[p.id] && <div style={{ marginTop: 8 }}><Banner kind="danger">{msg[p.id]}</Banner></div>}

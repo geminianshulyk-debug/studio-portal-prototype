@@ -33,6 +33,7 @@ export default function GradingPage() {
     return out.sort((a, b) => b.waiting - a.waiting);
   }, [db, course.id]);
   const rows = onlyAwaiting ? items.filter((i) => i.status === 'submitted' || i.status === 'resubmitted') : items;
+  const firstAwaiting = rows.find((i) => i.status === 'submitted' || i.status === 'resubmitted')?.id; // the one vermilion action: next item to review
   const cols: GCol<Item>[] = [
     textCol('student', 'Student', { width: 150, editable: false }), textCol('title', 'Task / milestone', { width: 300, editable: false }),
     numCol('version', 'Ver', { width: 60, editable: false }),
@@ -41,7 +42,7 @@ export default function GradingPage() {
     { key: 'status', name: 'Status', width: 120, renderCell: ({ row }) => <Badge kind={row.status === 'submitted' || row.status === 'resubmitted' ? 'warn' : row.status === 'complete' ? 'ok' : row.status === 'revision' ? 'dangerweak' : 'info'}>{row.status}</Badge> },
     textCol('score', 'Score', { width: 80, editable: false }),
     { key: 'waiting', name: 'Waiting', width: 90, renderCell: ({ row }) => <span>{row.status === 'submitted' || row.status === 'resubmitted' ? `${row.waiting}h` : '—'}</span> },
-    { key: 'go', name: '', width: 110, sortable: false, renderCell: ({ row }) => <button className={`btn sm ${row.status === 'submitted' || row.status === 'resubmitted' ? 'ink' : ''}`} onClick={() => setOpen(row)}>{row.status === 'submitted' || row.status === 'resubmitted' ? 'Give feedback' : 'Open'}</button> },
+    { key: 'go', name: '', width: 110, sortable: false, renderCell: ({ row }) => <button className={`btn sm ${row.id === firstAwaiting ? 'primary' : row.status === 'submitted' || row.status === 'resubmitted' ? 'ink' : ''}`} onClick={() => setOpen(row)}>{row.status === 'submitted' || row.status === 'resubmitted' ? 'Give feedback' : 'Open'}</button> },
   ];
   const tplCommit = useGridCommit('templates', '');
   const tplCols: GCol<FeedbackTemplate>[] = [
@@ -61,7 +62,7 @@ export default function GradingPage() {
             bulk={(sel, clear) => canGrade && (
               <>
                 <select value={tpl} onChange={(e) => setTpl(e.target.value)} style={{ width: 'auto', minHeight: 30, padding: '2px 8px' }} aria-label="Feedback template">{db.templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
-                <button className="btn sm primary" disabled={!sel.length} onClick={() => {
+                <button className="btn sm" disabled={!sel.length} onClick={() => {
                   const ids = sel.filter((s) => s.status === 'submitted' || s.status === 'resubmitted').map((s) => { const l = submissionsOf(db, s.unitId, s.studentId).at(-1)!; return l.id; });
                   const r = cmd.bulkFeedback(ids, tpl);
                   if (r.ok) { clear(); import('sonner').then(({ toast }) => toast.success(`Template applied to ${r.value.ok} submission(s)`, { description: r.value.skipped.length ? `${r.value.skipped.length} skipped` : 'Feedback events created, XP will follow for passes' })); }
