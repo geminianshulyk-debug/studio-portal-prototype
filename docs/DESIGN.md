@@ -22,3 +22,7 @@ Instructor → **Integrity lab** → “Run all” (expects 14/14 blocked). Manu
 
 ## Phase 6.5 / 7 prompts (to decide before real data)
 Sign-off for a tool outside ERP · is this system’s mark authoritative or a working layer over ERP? · DPDP-Act storage/access for uploads, peer evaluations and IP details · consent-based volunteer pilot · pilot exit criteria fixed **before** the pilot (on-time rate, admin hours saved, satisfaction threshold).
+
+## Visual QA (studio-wall redesign)
+`docs/screenshots/` holds the four student hero states, the staff Home, and sample pages at 1440, 1280 and 390 px.
+Checked on every page for both roles: no console errors, no horizontal page overflow, at most one vermilion primary action per screen, Integrity lab 14/14 blocked, closed-loop demo (grade → XP → rank-up) unchanged.
