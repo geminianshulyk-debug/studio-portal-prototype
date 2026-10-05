@@ -28,8 +28,8 @@ export default function CompetitionsAdmin() {
       <div className="col">
         <div className="row wrap">
           <span className="lbl">Course filter</span>
-          <button className={`btn sm ${filter === 'all' ? 'primary' : ''}`} onClick={() => setFilter('all')}>All</button>
-          {db.courses.map((c) => <button key={c.id} className={`btn sm ${filter === c.code ? 'primary' : ''}`} onClick={() => setFilter(c.code)}>{c.code}</button>)}
+          <button className={`btn sm ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>All</button>
+          {db.courses.map((c) => <button key={c.id} className={`btn sm ${filter === c.code ? 'on' : ''}`} onClick={() => setFilter(c.code)}>{c.code}</button>)}
           <label className="row small"><input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> show archived</label>
         </div>
         <Card>

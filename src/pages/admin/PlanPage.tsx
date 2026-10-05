@@ -96,9 +96,9 @@ export default function PlanPage() {
       {!canEdit && <Banner kind="info">Read-only oversight — bars cannot be dragged.</Banner>}
       <div className="col">
         <div className="row wrap small">
-          {['ca1', 'ca2', 'ca3'].map((c, i) => <span key={c} className="row" style={{ gap: 4 }}><i className="legend-dot" style={{ background: ['#7c6cf6', '#0b6aa8', '#157f3c'][i] }} />CA{i + 1} tasks</span>)}
-          <span className="row" style={{ gap: 4 }}><i className="legend-dot" style={{ background: '#a3a9c4' }} />Instruction plan</span>
-          <span className="row" style={{ gap: 4 }}><i className="legend-dot" style={{ background: '#c2710c' }} />Reviews</span>
+          {['ca1', 'ca2', 'ca3'].map((c, i) => <span key={c} className="row" style={{ gap: 4 }}><i className="legend-dot" style={{ background: ['var(--brand)', 'var(--info)', 'var(--moss-bright)'][i] }} />CA{i + 1} tasks</span>)}
+          <span className="row" style={{ gap: 4 }}><i className="legend-dot" style={{ background: 'var(--plan-grey)' }} />Instruction plan</span>
+          <span className="row" style={{ gap: 4 }}><i className="legend-dot" style={{ background: 'var(--review)' }} />Reviews</span>
         </div>
         <div className="gantt-host"><div ref={host} /></div>
         <Card title="Instruction plan (ordered rows)">

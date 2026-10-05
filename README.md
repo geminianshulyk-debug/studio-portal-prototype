@@ -8,9 +8,25 @@ npm run dev      # http://localhost:5173
 npm run build
 ```
 
-Start at **Feature Map**. Use **Viewing as** (top bar) to switch between Instructor, Co-instructor, TA, Dean/HOD (read-only) and six students. *Demo tools* → simulate a concurrent edit or reset the data. **Instructor → Integrity lab** runs 14 attempts to break the closed-loop / loophole rules.
+The app opens on the signed-in role's **Home** (student dashboard or instructor home). Switch roles from the **avatar chip** (top right): Instructor, Co-instructor, TA, Dean/HOD (read-only) and six students. The **flask icon** (Demo tools) simulates a concurrent edit, toggles the UX-law annotations, or resets the data. **Prototype tour** (bottom of the sidebar) is the overview of every module. **Instructor → Integrity lab** runs 14 attempts to break the closed-loop / loophole rules. ⌘K / Ctrl+K jumps to any page.
 
 Suggested 5-minute demo: Student *Aarav* (15 XP from a rank-up) → Instructor *Grading queue* → “Give feedback” on Aarav’s shadowing report (annotate text, post) → switch back to Aarav: quest-complete + rank-up moment, XP in ledger.
+
+## Design language — "the studio wall"
+Bone paper, ink, one vermilion marker, blueprint-cobalt annotations, brass rewards. One token base for both sides (`src/index.css`); student vs admin mode only changes density and radius.
+
+| Role | Token | Use |
+|---|---|---|
+| Paper / surface | `--bg #efe9de` · `--surface #faf6ee` · `--hero #f9f4ea` | page, cards, hero |
+| Ink | `--ink #1b1a17` · `--ink-2` · `--ink-3` | text levels |
+| Vermilion | `--primary #d93c1a` (white text 4.55:1), `--brand #e8452c` (decorative) | **the one next action** per screen, active nav, underline scribble |
+| Cobalt | `--info #1f3fbf` | links, focus, information, annotations |
+| Brass | `--xp-bright #c38b27` | XP, ranks, rank pin — rewards only |
+| Moss / red | `--ok` · `--danger` | done / overdue & blocked (always with icon + label) |
+
+Type: Plus Jakarta Sans (display), Inter (UI), JetBrains Mono (codes, numbers, countdowns, eyebrows) — self-hosted via `@fontsource-variable`. Icons: one stroke set (`lucide-react`), no emoji. Selected toggles are ink, never vermilion.
+
+**Hero rule:** eyebrow, headline, one line of context, one primary button + one text link, one visual — nothing else. Rank, counts and shortcuts live in the status strip *below* the hero. States: default, overdue (red line with icon), new student (blueprint sketch), all caught up. Hero art is in `src/assets/` (cropped from the approved concept board; replace with a high-res export when available). Analytics series use a categorical palette validated for colour-blind separation against the card surface.
 
 ## Stack (as specified)
 react-data-grid (every editable table) · frappe-gantt · @dnd-kit/core · recharts · react-hook-form + zod · zustand · @casl/ability + @casl/react · json-rules-engine · @tiptap/react · sonner · Uppy (core, dashboard, xhr-upload) · @tanstack/react-table v8 (read-only lists) · motion · immer (draft updates).
@@ -39,4 +55,4 @@ react-data-grid (every editable table) · frappe-gantt · @dnd-kit/core · recha
 - Uploads are simulated (Uppy UI + progress; files are not stored). `UppyUploader.tsx` has a `MOCK_UPLOAD` switch for `@uppy/xhr-upload`/tus once a server exists.
 - Competitions, organisers and prizes are **sample data**, not real listings.
 - Instructor-authored rich text is rendered as HTML; sanitise server-side before any real deployment.
-- No Figma track was produced (no design file was available); the design tokens live in `src/index.css`. Phases 0–4.5, 6.5 and 7 of the process are design/governance work; Phase 0/1 artefacts are in `docs/`.
+- No Figma track was produced; the design tokens live in `src/index.css` and the hero art in `src/assets/` is a crop of the concept board (≈820 px wide), so it is soft on very large retina screens until a high-res export replaces it. Phases 0–4.5, 6.5 and 7 of the process are design/governance work; Phase 0/1 artefacts are in `docs/`.

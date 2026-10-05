@@ -5,14 +5,16 @@ import { Badge, Banner, Card, Field, PageHead } from '../../components/ui';
 import EditableGrid from '../../components/EditableGrid';
 import { numCol, textCol, type GCol } from '../../components/gridCols';
 import { useCan, useCourse } from './common';
+import { chartColors, tok } from '../../lib/display';
 import { coAttainment, engagement, outcomeAttainment, userName, type Engagement } from '../../lib/selectors';
 
-// Validated categorical slots 1–2 (light surface): blue, orange. Text stays in ink tokens, never series colour.
-const C1 = '#2a78d6', C2 = '#eb6834';
-const INK = '#52514e';
+// Brand categorical palette, validated against the #faf6ee card surface (dataviz validate_palette: all checks pass).
+// Fixed order, never cycled: cobalt, vermilion, teal, brass, rose, violet. Text stays in ink tokens, never series colour.
 type ERow = Engagement & { id: string; name: string; flag: string };
 
 export default function AnalyticsPage() {
+  const PALETTE = chartColors(), C1 = PALETTE[0], C2 = PALETTE[1];
+  const INK = tok('--ink-2'), GRID = tok('--line'), SURFACE = tok('--surface');
   const db = useDb(), course = useCourse(), cmd = useCmd(), can = useCan();
   const [who, setWho] = useState('cohort');
   const [table, setTable] = useState(false);
@@ -24,7 +26,7 @@ export default function AnalyticsPage() {
   const outS = who === 'cohort' ? undefined : outcomeAttainment(db, [course.id], who);
   const radar = db.outcomes.map((o) => ({ key: o.key, Cohort: Math.round(outC[o.key] ?? 0), Student: outS ? Math.round(outS[o.key] ?? 0) : undefined }));
   const eng = useMemo(() => engagement(db, course.id), [db, course.id]);
-  const rows: ERow[] = eng.map((e) => ({ ...e, id: e.studentId, name: userName(db, e.studentId), flag: e.risks.length ? `⚠ ${e.risks.join(' · ')}` : 'OK' }));
+  const rows: ERow[] = eng.map((e) => ({ ...e, id: e.studentId, name: userName(db, e.studentId), flag: e.risks.length ? e.risks.join(' · ') : 'OK' }));
   const cols: GCol<ERow>[] = [
     textCol('name', 'Student', { width: 160, editable: false }),
     { key: 'sub', name: 'Submitted / due', width: 130, renderCell: ({ row }) => <span>{row.submitted}/{row.due} ({Math.round(row.submissionRate * 100)}%)</span> },
@@ -41,7 +43,6 @@ export default function AnalyticsPage() {
     const run: Record<string, number> = {};
     return days.map((d) => { evs.filter((e) => e.at.slice(5, 10) === d).forEach((e) => { run[e.studentId] = (run[e.studentId] ?? 0) + e.points; }); return { day: d, ...Object.fromEntries(students.map((s) => [s.name.split(' ')[0], run[s.id] ?? 0])) }; });
   }, [db.xpEvents, students]);
-  const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#e87ba4', '#4a3aa7', '#eda100'];
   const atRisk = eng.filter((e) => e.risks.length).length;
   const avgRate = eng.reduce((a, e) => a + e.submissionRate, 0) / Math.max(1, eng.length);
   const edit = can('update', 'Analytics');
@@ -68,7 +69,7 @@ export default function AnalyticsPage() {
             <Card title="CO attainment (% of rubric marks, completed work)">
               <div style={{ height: 260 }} role="img" aria-label="Bar chart of CO attainment">
                 <ResponsiveContainer><BarChart data={coData} barCategoryGap="30%">
-                  <CartesianGrid vertical={false} stroke="#e7e6e2" /><XAxis dataKey="co" tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid vertical={false} stroke={GRID} /><XAxis dataKey="co" tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis domain={[0, 100]} tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} width={34} />
                   <Tooltip /><Legend />
                   <Bar dataKey="Cohort" fill={C1} radius={[4, 4, 0, 0]} maxBarSize={22} />
@@ -78,7 +79,7 @@ export default function AnalyticsPage() {
             </Card>
             <Card title="PO / PSO attainment (via mapping matrix)">
               <div style={{ height: 260 }} role="img" aria-label="Radar chart of PO and PSO attainment">
-                <ResponsiveContainer><RadarChart data={radar}><PolarGrid stroke="#e7e6e2" /><PolarAngleAxis dataKey="key" tick={{ fill: INK, fontSize: 11 }} /><PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                <ResponsiveContainer><RadarChart data={radar}><PolarGrid stroke={GRID} /><PolarAngleAxis dataKey="key" tick={{ fill: INK, fontSize: 11 }} /><PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar name="Cohort" dataKey="Cohort" stroke={C1} fill={C1} fillOpacity={0.18} strokeWidth={2} />
                   {who !== 'cohort' && <Radar name="Student" dataKey="Student" stroke={C2} fill={C2} fillOpacity={0.15} strokeWidth={2} />}
                   <Legend /><Tooltip /></RadarChart></ResponsiveContainer>
@@ -86,8 +87,8 @@ export default function AnalyticsPage() {
             </Card>
             <Card title="XP progression (cumulative per student)" style={{ gridColumn: '1 / -1' }}>
               <div style={{ height: 240 }} role="img" aria-label="Line chart of cumulative XP">
-                <ResponsiveContainer><LineChart data={xpLine}><CartesianGrid vertical={false} stroke="#e7e6e2" /><XAxis dataKey="day" tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} width={40} /><Tooltip /><Legend />
-                  {students.map((s, i) => <Line key={s.id} type="monotone" dataKey={s.name.split(' ')[0]} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={{ r: 4, stroke: '#fcfcfb', strokeWidth: 2 }} />)}</LineChart></ResponsiveContainer>
+                <ResponsiveContainer><LineChart data={xpLine}><CartesianGrid vertical={false} stroke={GRID} /><XAxis dataKey="day" tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} /><YAxis tick={{ fill: INK, fontSize: 12 }} axisLine={false} tickLine={false} width={40} /><Tooltip /><Legend />
+                  {students.map((s, i) => <Line key={s.id} type="monotone" dataKey={s.name.split(' ')[0]} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={{ r: 4, stroke: SURFACE, strokeWidth: 2 }} />)}</LineChart></ResponsiveContainer>
               </div>
             </Card>
           </div>

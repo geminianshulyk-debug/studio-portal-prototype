@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, type SortingState } from '@tanstack/react-table';
 import { useCmd, useDb, useStore, useUser } from '../../store';
-import { Badge, Banner, Card, PageHead } from '../../components/ui';
+import { Check } from 'lucide-react';
+import { Badge, Banner, Card, PageHead , SortMark } from '../../components/ui';
 import { abilityFor, PERM_ACTIONS, PERM_SUBJECTS } from '../../lib/permissions';
 import { fmtDateTime, instructorAlerts, userName } from '../../lib/selectors';
 import type { AuditEntry, User } from '../../types';
@@ -27,7 +28,7 @@ export function AuditPage() {
         laws={['Nielsen — visibility of system status', 'Miller’s Law — 7 rows per page']} actions={<input type="search" placeholder="Search log…" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 220 }} aria-label="Search audit log" />} />
       <Card>
         <table className="plain">
-          <thead>{table.getHeaderGroups().map((hg) => <tr key={hg.id}>{hg.headers.map((h) => <th key={h.id} onClick={h.column.getToggleSortingHandler()}>{flexRender(h.column.columnDef.header, h.getContext())}{{ asc: ' ▲', desc: ' ▼' }[h.column.getIsSorted() as string] ?? ''}</th>)}</tr>)}</thead>
+          <thead>{table.getHeaderGroups().map((hg) => <tr key={hg.id}>{hg.headers.map((h) => <th key={h.id} onClick={h.column.getToggleSortingHandler()}>{flexRender(h.column.columnDef.header, h.getContext())}<SortMark dir={h.column.getIsSorted()} /></th>)}</tr>)}</thead>
           <tbody>{table.getRowModel().rows.map((r) => <tr key={r.id}>{r.getVisibleCells().map((c) => <td key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</td>)}</tr>)}</tbody>
         </table>
         <div className="row between" style={{ marginTop: 8 }}>
@@ -49,7 +50,7 @@ export function AlertsPage() {
       <PageHead title="Notification center" sub="The closed loop should not depend on anyone remembering to check. Everything that is waiting on you is listed here, grouped by type."
         laws={['Von Restorff — urgent items carry a red marker', 'Hick’s Law — four fixed groups']} />
       <div className="col">
-        {alerts.length === 0 && <Banner kind="ok">Nothing is waiting on you. 🎉</Banner>}
+        {alerts.length === 0 && <Banner kind="ok">Nothing is waiting on you.</Banner>}
         {groups.map(([k, title, sub]) => {
           const list = alerts.filter((a) => a.kind === k);
           return (
@@ -58,7 +59,7 @@ export function AlertsPage() {
               {list.map((a) => (
                 <div key={a.id} className={`row between ${a.urgent ? 'overdue' : ''}`} style={{ padding: '8px 10px', borderBottom: '1px solid var(--line)' }}>
                   <div><b>{a.title}</b><div className="small muted">{a.detail}</div></div>
-                  <button className="btn sm primary" onClick={() => setPage(a.page)}>Open →</button>
+                  <button className="btn sm" onClick={() => setPage(a.page)}>Open</button>
                 </div>))}
               {!list.length && <span className="small muted">All clear.</span>}
             </Card>
@@ -83,7 +84,7 @@ export function AccessPage() {
       <Card title="Live permission matrix (evaluated from the real ability definitions)">
         <table className="plain"><thead><tr><th>Subject · action</th>{reps.map((u) => <th key={u.id}>{LBL[u.role]}</th>)}</tr></thead>
           <tbody>{PERM_SUBJECTS.flatMap((s) => PERM_ACTIONS.map((a) => ({ s, a }))).filter(({ s, a }) => reps.some((u) => abilityFor(u).can(a, s))).map(({ s, a }) => (
-            <tr key={s + a}><td><b>{s}</b> · {a}</td>{reps.map((u) => <td key={u.id} style={{ textAlign: 'center' }}>{abilityFor(u).can(a, s) ? <span style={{ color: 'var(--ok)', fontWeight: 800 }}>✓</span> : <span className="muted">—</span>}</td>)}</tr>))}</tbody></table>
+            <tr key={s + a}><td><b>{s}</b> · {a}</td>{reps.map((u) => <td key={u.id} style={{ textAlign: 'center' }}>{abilityFor(u).can(a, s) ? <span className="check" aria-label="allowed"><Check /></span> : <span className="muted" aria-label="not allowed">—</span>}</td>)}</tr>))}</tbody></table>
         <p className="small muted" style={{ marginTop: 8 }}>TA: can grade and give feedback but not change rubric, XP rules or the IP gate. Co-instructor: everything except deleting a course. HOD: read-only oversight. Student: attribute rules (own feedback, own projects, own competition entries).</p>
       </Card>
     </>
@@ -134,7 +135,7 @@ export function IntegrityPage() {
           <Card key={a.id} className={r && !r.blocked ? 'overdue' : ''}>
             <div className="row between"><div><b>{a.id}. {a.title}</b><div className="small muted">{a.code} · expected refusal: <span className="mono">{a.expect}</span></div></div>
               <button className="btn" onClick={() => run(a)}>Attempt</button></div>
-            {r && <div style={{ marginTop: 8 }}><Banner kind={r.blocked ? 'ok' : 'danger'}>{r.blocked ? '✓ Blocked — ' : '✗ '}{r.msg}</Banner></div>}
+            {r && <div style={{ marginTop: 8 }}><Banner kind={r.blocked ? 'ok' : 'danger'}>{r.blocked ? 'Blocked — ' : ''}{r.msg}</Banner></div>}
           </Card>); })}
         <Card title="Server-authoritative timestamps"><p className="small">The submit command takes no client timestamp: <span className="mono">submitWork</span> stamps <span className="mono">submittedAt</span> from the data layer’s own clock, so on-time status cannot be forged. (Try it as a student: the “Upload” dialog has no date field, and a forged <span className="mono">submittedAt</span> property in the call is ignored by code — see <span className="mono">api.ts</span>.)</p></Card>
       </div>

@@ -1,3 +1,4 @@
+import { RotateCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { useCmd, useDb } from '../../store';
@@ -82,7 +83,7 @@ function Roles({ task }: { task: Task }) {
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="grid3">
           {g.milestones.map((m, mi) => (
-            <Card key={m.id} title={m.title} actions={edit && mi > 0 && <button className="btn sm" onClick={() => rotate(m.id)}>↻ Auto-rotate</button>}>
+            <Card key={m.id} title={m.title} actions={edit && mi > 0 && <button className="btn sm" onClick={() => rotate(m.id)}><RotateCw /> Auto-rotate</button>}>
               <div className="small muted" style={{ marginBottom: 6 }}>Due {fmtDateTime(m.due)}</div>
               <div className="col" style={{ gap: 8 }}>
                 {g.roles.map((r) => {
@@ -186,7 +187,7 @@ function Review({ taskId }: { taskId: string }) {
               <td><b>{userName(db, e.evaluatorId)}</b> → {e.evaluatorId === e.evaluateeId ? <i>self</i> : userName(db, e.evaluateeId)}</td>
               <td>{avgScore(e.scores).toFixed(1)}</td><td className="small">{e.flag!.reason}</td>
               <td>{e.flag!.status === 'pending' ? <Badge kind="danger">pending</Badge> : <Badge kind={e.flag!.status === 'accepted' ? 'ok' : 'gray'}>{e.flag!.status}</Badge>}{e.flag!.justification && <div className="small muted">{e.flag!.justification}</div>}</td>
-              <td>{e.flag!.status === 'pending' && edit && <button className="btn sm primary" onClick={() => { setTarget(e.id); setWhy(''); }}>Review</button>}</td>
+              <td>{e.flag!.status === 'pending' && edit && <button className="btn sm ink" onClick={() => { setTarget(e.id); setWhy(''); }}>Review</button>}</td>
             </tr>))}</tbody></table>
       </Card>
       {t && (

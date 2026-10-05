@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useCmd, useDb } from '../../store';
+import { Check, Paperclip } from 'lucide-react';
 import { Badge, Banner, Card, Drawer, Field, Html, Modal, PageHead, Rte, Tabs } from '../../components/ui';
 import EditableGrid, { newId } from '../../components/EditableGrid';
 import { numCol, selectCol, textCol, type GCol } from '../../components/gridCols';
@@ -32,6 +33,7 @@ export default function GradingPage() {
     return out.sort((a, b) => b.waiting - a.waiting);
   }, [db, course.id]);
   const rows = onlyAwaiting ? items.filter((i) => i.status === 'submitted' || i.status === 'resubmitted') : items;
+  const firstAwaiting = rows.find((i) => i.status === 'submitted' || i.status === 'resubmitted')?.id; // the one vermilion action: next item to review
   const cols: GCol<Item>[] = [
     textCol('student', 'Student', { width: 150, editable: false }), textCol('title', 'Task / milestone', { width: 300, editable: false }),
     numCol('version', 'Ver', { width: 60, editable: false }),
@@ -40,7 +42,7 @@ export default function GradingPage() {
     { key: 'status', name: 'Status', width: 120, renderCell: ({ row }) => <Badge kind={row.status === 'submitted' || row.status === 'resubmitted' ? 'warn' : row.status === 'complete' ? 'ok' : row.status === 'revision' ? 'dangerweak' : 'info'}>{row.status}</Badge> },
     textCol('score', 'Score', { width: 80, editable: false }),
     { key: 'waiting', name: 'Waiting', width: 90, renderCell: ({ row }) => <span>{row.status === 'submitted' || row.status === 'resubmitted' ? `${row.waiting}h` : '—'}</span> },
-    { key: 'go', name: '', width: 110, sortable: false, renderCell: ({ row }) => <button className="btn sm primary" onClick={() => setOpen(row)}>{row.status === 'submitted' || row.status === 'resubmitted' ? 'Give feedback' : 'Open'}</button> },
+    { key: 'go', name: '', width: 110, sortable: false, renderCell: ({ row }) => <button className={`btn sm ${row.id === firstAwaiting ? 'primary' : row.status === 'submitted' || row.status === 'resubmitted' ? 'ink' : ''}`} onClick={() => setOpen(row)}>{row.status === 'submitted' || row.status === 'resubmitted' ? 'Give feedback' : 'Open'}</button> },
   ];
   const tplCommit = useGridCommit('templates', '');
   const tplCols: GCol<FeedbackTemplate>[] = [
@@ -54,13 +56,13 @@ export default function GradingPage() {
       <Tabs value={tab} onChange={setTab} tabs={[{ id: 'queue', label: 'Queue' }, { id: 'templates', label: 'Feedback templates' }]} />
       {tab === 'queue' && (
         <div className="col">
-          <div className="row"><button className={`btn ${onlyAwaiting ? 'primary' : ''}`} onClick={() => setOnlyAwaiting(true)}>Awaiting feedback ({items.filter((i) => i.status === 'submitted' || i.status === 'resubmitted').length})</button><button className={`btn ${!onlyAwaiting ? 'primary' : ''}`} onClick={() => setOnlyAwaiting(false)}>All submissions ({items.length})</button></div>
+          <div className="row"><div className="seg" role="group" aria-label="Filter"><button aria-pressed={onlyAwaiting} onClick={() => setOnlyAwaiting(true)}>Awaiting feedback ({items.filter((i) => i.status === 'submitted' || i.status === 'resubmitted').length})</button><button aria-pressed={!onlyAwaiting} onClick={() => setOnlyAwaiting(false)}>All submissions ({items.length})</button></div></div>
           <EditableGrid label="Submissions" rows={rows} columns={cols} readOnly selectable={canGrade} onCommit={() => ({ ok: true, value: null })} hint="Select rows for bulk actions"
             rowClass={(r) => (r.onTime === 'LATE' && (r.status === 'submitted' || r.status === 'resubmitted') ? 'row-danger' : r.waiting > 72 ? 'row-warn' : undefined)}
             bulk={(sel, clear) => canGrade && (
               <>
                 <select value={tpl} onChange={(e) => setTpl(e.target.value)} style={{ width: 'auto', minHeight: 30, padding: '2px 8px' }} aria-label="Feedback template">{db.templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
-                <button className="btn sm primary" disabled={!sel.length} onClick={() => {
+                <button className="btn sm" disabled={!sel.length} onClick={() => {
                   const ids = sel.filter((s) => s.status === 'submitted' || s.status === 'resubmitted').map((s) => { const l = submissionsOf(db, s.unitId, s.studentId).at(-1)!; return l.id; });
                   const r = cmd.bulkFeedback(ids, tpl);
                   if (r.ok) { clear(); import('sonner').then(({ toast }) => toast.success(`Template applied to ${r.value.ok} submission(s)`, { description: r.value.skipped.length ? `${r.value.skipped.length} skipped` : 'Feedback events created, XP will follow for passes' })); }
@@ -142,12 +144,12 @@ function GradeDrawer({ item, onClose }: { item: Item; onClose: () => void }) {
     <Drawer title={`${item.student} — ${item.title}`} onClose={onClose}>
       <div className="col">
         <div className="row wrap">
-          {subs.map((s) => <button key={s.id} className={`btn sm ${ver === s.version ? 'primary' : ''}`} onClick={() => setVer(s.version)}>v{s.version}{feedbackOfSubmission(db, s.id) ? ' ✓fb' : ''}</button>)}
+          {subs.map((s) => <button key={s.id} className={`btn sm ${ver === s.version ? 'on' : ''}`} onClick={() => setVer(s.version)}>v{s.version}{feedbackOfSubmission(db, s.id) && <Check aria-label="has feedback" />}</button>)}
           <Badge kind={sub.onTime ? 'ok' : 'danger'}>{sub.onTime ? 'on time' : 'LATE'}</Badge><span className="small muted">submitted {fmtDateTime(sub.submittedAt)} · deadline {fmtDateTime(effectiveDeadline(task, item.studentId))}</span>
         </div>
         {isMilestoneUnit(item.unitId) && <Banner kind="info">Group milestone sub-task — role: <b>{task.group!.milestones.find((m) => m.id === unitMilestone(item.unitId))?.assignments[item.studentId]}</b>. After everyone has feedback and the peer cycle is closed, publish the merged artifact from Group &amp; peer.</Banner>}
         <Card title={`Submission v${sub.version}`}>
-          <div className="row wrap" style={{ marginBottom: 8 }}>{sub.fileNames.map((f) => <span key={f} className="chip">📎 {f}</span>)}</div>
+          <div className="row wrap" style={{ marginBottom: 8 }}>{sub.fileNames.map((f) => <span key={f} className="chip"><Paperclip aria-hidden />{f}</span>)}</div>
           {sub.unticked.length > 0 && <Banner kind="warn">Student left unticked: {sub.unticked.map((id) => task.rubric.find((k) => k.id === id)?.text).join('; ')}</Banner>}
           <p className="small muted" style={{ margin: '8px 0 4px' }}>Select text below to annotate that passage{fb ? ' (annotations shown as highlights)' : ''}.</p>
           <div onMouseUp={captureSel}>{paras.map((p, i) => <div key={i} data-p={i} className="para">{render(p, i)}</div>)}</div>

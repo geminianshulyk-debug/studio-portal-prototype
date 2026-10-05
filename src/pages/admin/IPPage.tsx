@@ -1,3 +1,4 @@
+import { Check, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { useCmd, useDb } from '../../store';
 import { Badge, Banner, Card, Field, PageHead } from '../../components/ui';
@@ -25,9 +26,9 @@ export default function IPPage() {
     { key: 'owners', name: 'Owners', width: 200, renderCell: ({ row }) => <span>{row.ownerIds.map((s) => userName(db, s).split(' ')[0]).join(', ')}</span> },
     { key: 'ipStatus', name: 'IP status', width: 150, renderCell: ({ row }) => ipBadge(row.ipStatus) },
     textCol('ipKind', 'Route', { width: 150, editable: false }),
-    { key: 'gate', name: 'Disclosure gate', width: 160, renderCell: ({ row }) => (course.disclosureGate && row.ipStatus === 'unscreened' ? <Badge kind="danger">⛔ BLOCKED</Badge> : <Badge kind="ok">cleared</Badge>) },
-    { key: 'pr', name: 'Portfolio-ready', width: 130, renderCell: ({ row }) => <span>{row.portfolioReady ? '✓' : '—'}</span> },
-    { key: 'ce', name: 'Competition-eligible', width: 160, renderCell: ({ row }) => <span>{row.competitionEligible ? '✓' : '—'}</span> },
+    { key: 'gate', name: 'Disclosure gate', width: 160, renderCell: ({ row }) => (course.disclosureGate && row.ipStatus === 'unscreened' ? <Badge kind="danger"><Lock /> BLOCKED</Badge> : <Badge kind="ok">cleared</Badge>) },
+    { key: 'pr', name: 'Portfolio-ready', width: 130, renderCell: ({ row }) => {row.portfolioReady ? <span className="check" aria-label="yes"><Check /></span> : <span className="muted">—</span>} },
+    { key: 'ce', name: 'Competition-eligible', width: 160, renderCell: ({ row }) => {row.competitionEligible ? <span className="check" aria-label="yes"><Check /></span> : <span className="muted">—</span>} },
   ];
   const tryFlag = (flag: 'portfolioReady' | 'competitionEligible', v: boolean) => {
     const r = cmd.setProjectFlag(p.id, flag, v);
@@ -41,11 +42,11 @@ export default function IPPage() {
       <div className="col">
         <Card title="Disclosure gate" actions={<label className="row"><input type="checkbox" checked={course.disclosureGate} disabled={!canScreen} onChange={(e) => cmd.updateCourse(course.id, { disclosureGate: e.target.checked } as never, course.rev, `disclosure gate ${e.target.checked ? 'enabled' : 'disabled'}`)} /> Gate enabled for {course.code}</label>}>
           {!canScreen && <Banner kind="info">Your role cannot change the IP gate or log screening decisions (Teaching Assistants and oversight roles are read-only here).</Banner>}
-          {waiting.length > 0 ? <Banner kind="danger">⛔ {waiting.length} project(s) waiting on a screening decision: {waiting.map((w) => w.title).join(', ')}</Banner> : <Banner kind="ok">No projects waiting for screening.</Banner>}
+          {waiting.length > 0 ? <Banner kind="danger">{waiting.length} project(s) waiting on a screening decision: {waiting.map((w) => w.title).join(', ')}</Banner> : <Banner kind="ok">No projects waiting for screening.</Banner>}
         </Card>
         <EditableGrid label="Projects" rows={projects} columns={cols} readOnly selectable={false} onCommit={() => ({ ok: true, value: null })} hint="Select a project card below to act"
           rowClass={(r) => (course.disclosureGate && r.ipStatus === 'unscreened' ? 'row-danger' : undefined)} />
-        <div className="row wrap">{projects.map((x) => <button key={x.id} className={`btn ${p?.id === x.id ? 'primary' : ''}`} onClick={() => { setSel(x.id); setGateMsg(null); }}>{x.title}</button>)}</div>
+        <div className="row wrap">{projects.map((x) => <button key={x.id} className={`btn ${p?.id === x.id ? 'on' : ''}`} onClick={() => { setSel(x.id); setGateMsg(null); }}>{x.title}</button>)}</div>
         {p && (
           <div className="grid2">
             <Card title={p.title} actions={ipBadge(p.ipStatus)}>
@@ -58,7 +59,7 @@ export default function IPPage() {
                 <button className="btn" onClick={() => tryFlag('portfolioReady', !p.portfolioReady)}>{p.portfolioReady ? 'Unmark portfolio-ready' : 'Mark portfolio-ready'}</button>
                 <button className="btn" onClick={() => tryFlag('competitionEligible', !p.competitionEligible)}>{p.competitionEligible ? 'Unmark competition-eligible' : 'Mark competition-eligible'}</button>
               </div>
-              {gateMsg && <div style={{ marginTop: 8 }}><Banner kind="danger">⛔ {gateMsg}</Banner></div>}
+              {gateMsg && <div style={{ marginTop: 8 }}><Banner kind="danger">{gateMsg}</Banner></div>}
             </Card>
             <Card title="Log screening decision">
               <div className="col">

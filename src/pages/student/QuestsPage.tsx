@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { toast } from 'sonner';
 import { useCmd, useDb, useNow, useStore, useUser } from '../../store';
-import { Badge, Banner, Bar, Card, Drawer, Html, Modal, PageHead } from '../../components/ui';
+import { Check, CheckSquare, Columns3, Lock, Map as MapIcon, MessageSquareText, Paperclip, PencilLine, RotateCcw, Square, Upload, type LucideIcon } from 'lucide-react';
+import { Badge, Banner, Bar, Card, Drawer, Due, Html, Modal, PageHead } from '../../components/ui';
 import UppyUploader, { type UploaderApi } from '../../components/UppyUploader';
-import { countdown } from '../../lib/time';
 import { feedbackOfSubmission, fmtDateTime, submissionsOf, unitsFor, userName, type Unit } from '../../lib/selectors';
 import { unitTask } from '../../types';
 
-const ICON: Record<string, string> = { assigned: '📝', submitted: '📤', resubmitted: '📤', feedback: '💬', revision: '🔁', complete: '✅' };
+const ICON: Record<string, LucideIcon> = { assigned: PencilLine, submitted: Upload, resubmitted: Upload, feedback: MessageSquareText, revision: RotateCcw, complete: Check };
 const LABEL: Record<string, string> = { assigned: 'To do', submitted: 'Awaiting feedback', resubmitted: 'Awaiting feedback', feedback: 'Feedback posted', revision: 'Revise & resubmit', complete: 'Complete' };
 const CHUNK = 7; // Miller's Law
 
@@ -23,10 +23,10 @@ export default function QuestsPage() {
   const done = units.filter((u) => u.status === 'complete').length;
   return (
     <>
-      <PageHead title={`Quest map — ${course.code}`} sub="Every task is a quest on your path. Unfinished quests stay open until feedback closes the loop."
+      <PageHead eyebrow={`${course.code} · ${course.title}`} title="Quest map" sub="Every task is a quest on your path. Unfinished quests stay open until feedback closes the loop."
         laws={['Zeigarnik — progress rings keep unfinished quests visible', 'Von Restorff — overdue quests pulse red', 'Miller — 7 quests per world, then “show more”']}
-        actions={<div className="row"><button className={`btn ${view === 'map' ? 'primary' : ''}`} onClick={() => setView('map')}>🗺 Map</button><button className={`btn ${view === 'board' ? 'primary' : ''}`} onClick={() => setView('board')}>▦ Board</button></div>} />
-      <Card style={{ marginBottom: 16 }}><div className="row"><b>{done}/{units.length} quests complete</b><div className="grow"><Bar value={units.length ? done / units.length : 0} kind="ok" /></div></div></Card>
+        actions={<div className="seg" role="group" aria-label="View"><button aria-pressed={view === 'map'} onClick={() => setView('map')}><MapIcon aria-hidden />Map</button><button aria-pressed={view === 'board'} onClick={() => setView('board')}><Columns3 aria-hidden />Board</button></div>} />
+      <Card style={{ marginBottom: 20 }}><div className="row"><b style={{ whiteSpace: 'nowrap' }}>{done}/{units.length} quests complete</b><div className="grow"><Bar value={units.length ? done / units.length : 0} kind="ok" /></div></div></Card>
       {view === 'map' ? (
         <div>{cas.map((ca) => <World key={ca.id} name={ca.name} weight={ca.weight} units={units.filter((u) => u.task.caId === ca.id)} onOpen={setOpen} now={now} />)}</div>
       ) : <Board units={units} onOpen={setOpen} />}
@@ -44,16 +44,16 @@ function World({ name, weight, units, onOpen, now }: { name: string; weight: num
       <h3><span>{name} <span className="muted small">· {weight}% of course</span></span><Badge kind={done === units.length ? 'ok' : 'info'}>{done}/{units.length}</Badge></h3>
       <div className="quest-path">
         {shown.map((u) => {
-          const cd = countdown(u.due, now);
           const kind = u.locked ? 'locked' : u.status === 'complete' ? 'done' : u.overdue ? 'overdue' : '';
+          const I = u.locked ? Lock : ICON[u.status];
           return (
             <div key={u.unitId} className={`qnode ${u.status === 'complete' ? 'done' : ''}`}>
-              <div className={`orb ${kind}`} style={{ ['--p' as never]: Math.round(u.pct * 100) }} data-ico={u.locked ? '🔒' : ICON[u.status]} aria-hidden />
-              <button className={`qcard ${kind}`} style={{ textAlign: 'left', font: 'inherit' }} onClick={() => !u.locked ? onOpen(u.unitId) : toast.info('Locked', { description: 'This milestone opens when the previous milestone’s merged feedback + peer summary is published.' })} aria-label={`${u.title}: ${LABEL[u.status]}`}>
+              <div className={`orb ${kind}`} style={{ ['--p' as never]: Math.round(u.pct * 100) }} aria-hidden><span><I /></span></div>
+              <button className={`qcard ${kind}`} onClick={() => !u.locked ? onOpen(u.unitId) : toast.info('Locked', { description: 'This milestone opens when the previous milestone’s merged feedback + peer summary is published.' })} aria-label={`${u.title}: ${LABEL[u.status]}`}>
                 <div className="row between wrap"><b>{u.title}</b>{u.role && <Badge kind="info">Role: {u.role}</Badge>}</div>
                 <div className="row wrap small" style={{ marginTop: 4 }}>
                   <Badge kind={u.status === 'complete' ? 'ok' : u.status === 'revision' ? 'dangerweak' : u.status === 'assigned' ? 'gray' : 'warn'}>{u.locked ? 'Locked' : LABEL[u.status]}</Badge>
-                  {u.status !== 'complete' && !u.locked && <span className={u.overdue ? 'err' : cd.urgent ? 'err' : 'muted'}>⏱ {cd.text}</span>}
+                  {u.status !== 'complete' && !u.locked && <Due iso={u.due} now={now} />}
                   <span className="chip">{u.task.type}</span>
                 </div>
               </button>
@@ -77,7 +77,7 @@ function BCard({ u, onOpen }: { u: Unit; onOpen: (id: string) => void }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: u.unitId, disabled: u.locked || u.status === 'complete' });
   return (
     <div ref={setNodeRef} {...listeners} {...attributes} className={`bcard ${u.overdue ? 'overdue' : ''}`} style={{ transform: transform ? `translate(${transform.x}px,${transform.y}px)` : undefined, zIndex: transform ? 20 : undefined }} onDoubleClick={() => !u.locked && onOpen(u.unitId)}>
-      <b className="small">{u.title}</b><div className="small muted">{u.locked ? '🔒 locked' : `⏱ ${countdown(u.due).text}`}</div>
+      <b className="small">{u.title}</b><div className="small muted" style={{ margin: '6px 0 2px' }}>{u.locked ? <span className="inl"><Lock className="ico-svg" /> locked</span> : u.status === 'complete' ? <span className="inl check"><Check className="ico-svg" /> complete</span> : <Due iso={u.due} />}</div>
       <button className="btn sm" style={{ marginTop: 4 }} onPointerDown={(e) => e.stopPropagation()} onClick={() => !u.locked && onOpen(u.unitId)}>Open</button>
     </div>
   );
@@ -112,19 +112,18 @@ export function QuestDrawer({ unitId, onClose }: { unitId: string; onClose: () =
   const opened = useRef({ at: new Date().toISOString(), rubric: task.rubricVersion });
   const [submitting, setSubmitting] = useState(false);
   const subs = submissionsOf(db, unitId, user.id);
-  const cd = countdown(u.due, now);
   const others = db.submissions.filter((s) => s.unitId === unitId && s.studentId !== user.id && s.submittedAt > opened.current.at);
   const rubricChanged = task.rubricVersion !== opened.current.rubric;
   return (
     <Drawer title={u.title} onClose={onClose}>
       <div className="col">
         <div className="row wrap"><Badge kind="info">{db.courses.find((c) => c.id === task.courseId)?.cos.find((c) => c.id === task.coId)?.code}</Badge><Badge>{task.type}</Badge>{u.role && <Badge kind="xp">Your role: {u.role}</Badge>}
-          <Badge kind={u.overdue ? 'danger' : cd.urgent ? 'warn' : 'gray'}>⏱ {cd.text} · {fmtDateTime(u.due)}</Badge></div>
-        {rubricChanged && <Banner kind="warn">⚠ <b>This was just updated.</b> The instructor changed the rubric while you had this open. Review the criteria below.</Banner>}
-        {others.map((s) => <Banner key={s.id} kind="info">ℹ {userName(db, s.studentId)} just uploaded to this milestone (their own sub-task) at {fmtDateTime(s.submittedAt)}. Your upload is separate and nothing of theirs is overwritten.</Banner>)}
+          <Due iso={u.due} now={now} /><span className="small muted">{fmtDateTime(u.due)}</span></div>
+        {rubricChanged && <Banner kind="warn"><b>This was just updated.</b> The instructor changed the rubric while you had this open. Review the criteria below.</Banner>}
+        {others.map((s) => <Banner key={s.id} kind="info">{userName(db, s.studentId)} just uploaded to this milestone (their own sub-task) at {fmtDateTime(s.submittedAt)}. Your upload is separate and nothing of theirs is overwritten.</Banner>)}
         <Card title="Brief"><Html html={task.brief} />{task.tools && <p className="small muted">Tools: {task.tools}</p>}</Card>
         <Card title="Rubric — what good looks like">
-          {task.rubric.map((k) => <div key={k.id} className="row between small" style={{ padding: '4px 0', borderBottom: '1px solid var(--line)' }}><span>{k.selfCheck ? '☑' : '☐'} {k.text}</span><Badge kind="gray">{k.max} pts</Badge></div>)}
+          {task.rubric.map((k) => <div key={k.id} className="row between small" style={{ padding: '4px 0', borderBottom: '1px solid var(--line)' }}><span className="inl">{k.selfCheck ? <CheckSquare className="ico-svg" aria-label="self-check" /> : <Square className="ico-svg" aria-hidden />} {k.text}</span><Badge kind="gray">{k.max} pts</Badge></div>)}
         </Card>
         <Card title={`Submissions & feedback (${subs.length} version${subs.length === 1 ? '' : 's'})`}>
           {subs.length === 0 && <p className="muted small">Nothing submitted yet.</p>}
@@ -133,7 +132,7 @@ export function QuestDrawer({ unitId, onClose }: { unitId: string; onClose: () =
             return (
               <div key={s.id} className="card region" style={{ marginBottom: 8 }}>
                 <div className="row between wrap"><b>Version {s.version}</b><span className="small muted">{fmtDateTime(s.submittedAt)} {s.onTime ? '' : '· LATE'}</span></div>
-                <div className="row wrap" style={{ margin: '6px 0' }}>{s.fileNames.map((f) => <span className="chip" key={f}>📎 {f}</span>)}</div>
+                <div className="row wrap" style={{ margin: '6px 0' }}>{s.fileNames.map((f) => <span className="chip" key={f}><Paperclip aria-hidden />{f}</span>)}</div>
                 {fb ? (
                   <div className="banner ok" style={{ flexDirection: 'column' }}>
                     <div className="row between" style={{ width: '100%' }}><b>Feedback on v{s.version}: {fb.total}%</b><Badge kind={fb.decision === 'pass' ? 'ok' : 'dangerweak'}>{fb.decision === 'pass' ? 'passed' : 'revision requested'}</Badge></div>
@@ -145,10 +144,10 @@ export function QuestDrawer({ unitId, onClose }: { unitId: string; onClose: () =
             );
           })}
         </Card>
-        {u.locked ? <Banner kind="warn">🔒 Locked until the previous milestone’s feedback and peer summary are published.</Banner>
-          : u.status === 'assigned' || u.status === 'revision' ? <button className="btn primary big" onClick={() => setSubmitting(true)}>{u.status === 'revision' ? `↻ Revise & resubmit (v${subs.length + 1})` : '⬆ Submit work'}</button>
-          : u.status === 'complete' ? <Banner kind="ok">✅ Complete — feedback received and XP granted.</Banner>
-          : <Banner kind="info">⏳ Version {subs.length} is with your reviewer. You can resubmit once feedback is posted.</Banner>}
+        {u.locked ? <Banner kind="warn">Locked until the previous milestone’s feedback and peer summary are published.</Banner>
+          : u.status === 'assigned' || u.status === 'revision' ? <button className="btn primary big" onClick={() => setSubmitting(true)}>{u.status === 'revision' ? <><RotateCcw /> Revise &amp; resubmit (v{subs.length + 1})</> : <><Upload /> Submit work</>}</button>
+          : u.status === 'complete' ? <Banner kind="ok">Complete — feedback received and XP granted.</Banner>
+          : <Banner kind="info">Version {subs.length} is with your reviewer. You can resubmit once feedback is posted.</Banner>}
       </div>
       {submitting && <SubmitDialog unit={u} seenRubric={opened.current.rubric} onClose={() => setSubmitting(false)} />}
     </Drawer>
@@ -177,7 +176,7 @@ function SubmitDialog({ unit, seenRubric, onClose }: { unit: Unit; seenRubric: n
   return (
     <Modal title={`Submit — ${unit.title}`} onClose={onClose} wide>
       <div className="col">
-        {task.rubricVersion !== seenRubric && <Banner kind="warn">⚠ <b>This was just updated.</b> The rubric changed while you were working; the self-check list below reflects the new version. <button className="btn sm" onClick={() => setAck(true)}>I’ve reviewed the changes</button></Banner>}
+        {task.rubricVersion !== seenRubric && <Banner kind="warn"><b>This was just updated.</b> The rubric changed while you were working; the self-check list below reflects the new version. <button className="btn sm" onClick={() => setAck(true)}>I’ve reviewed the changes</button></Banner>}
         <UppyUploader apiRef={api} onChange={setFiles} />
         <label className="lbl">Written documentation (separate paragraphs with a blank line — your reviewer can annotate any passage)</label>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={5} placeholder="Explain what you did and why…" />

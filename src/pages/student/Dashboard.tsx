@@ -1,8 +1,12 @@
 import { useMemo } from 'react';
+import { ArrowRight, Compass, Hammer, MessageSquareText, PencilRuler, RotateCcw, Users } from 'lucide-react';
 import { useDb, useNow, useStore, useUser } from '../../store';
-import { Badge, Bar, Card, PageHead } from '../../components/ui';
-import { countdown } from '../../lib/time';
-import { outcomeAttainment, rankFor, remindersFor, unitsFor, xpTotal } from '../../lib/selectors';
+import { Badge, Bar, Card, Due, Hero } from '../../components/ui';
+import { fmtDateTime, rankFor, remindersFor, unitsFor, xpTotal, type Unit } from '../../lib/selectors';
+import { humanDue, MOD_ICON, MOD_TINT } from '../../lib/display';
+import { unitTask } from '../../types';
+import handles from '../../assets/hero-handles.webp';
+import sketch from '../../assets/hero-sketch.webp';
 
 export default function Dashboard() {
   const db = useDb(), user = useUser(), { setPage, setCourse, courseId } = useStore();
@@ -10,50 +14,102 @@ export default function Dashboard() {
   const xp = xpTotal(db, user.id);
   const { rank, next, pct } = rankFor(db.ranks, xp);
   const reminders = useMemo(() => remindersFor(db, user.id, now), [db, user.id, now]);
-  const allUnits = unitsFor(db, user.id, undefined, now);
-  const nextUp = allUnits.filter((u) => u.status !== 'complete' && !u.locked && (u.status === 'assigned' || u.status === 'revision')).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3);
-  const att = outcomeAttainment(db, user.courseIds, user.id);
-  const psos = db.outcomes.filter((o) => o.kind === 'PSO');
+  const allUnits = useMemo(() => unitsFor(db, user.id, undefined, now), [db, user.id, now]);
+  const actionable = allUnits.filter((u) => !u.locked && (u.status === 'assigned' || u.status === 'revision')).sort((a, b) => a.due.localeCompare(b.due));
+  const open = allUnits.filter((u) => !u.locked && u.status !== 'complete');
+  const overdue = actionable.find((u) => u.overdue);
+  const first = overdue ?? actionable[0];
+  const unread = db.feedback.filter((f) => f.studentId === user.id && !f.read).length;
+  const peer = reminders.find((r) => r.kind === 'peer');
+  const latest = db.feedback.filter((f) => f.studentId === user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
+  const myCourses = db.courses.filter((c) => user.courseIds.includes(c.id));
+  const heroCourse = myCourses.find((c) => c.id === (first?.task.courseId ?? courseId)) ?? myCourses[0];
+  const name = user.name.split(' ')[0];
+  const openQuest = (u?: Unit) => { if (u) setCourse(u.task.courseId); setPage('quests'); };
+  const eyebrow = heroCourse ? `${heroCourse.code} · ${heroCourse.semester}` : 'Welcome to STUDIO';
+
+  const hero = allUnits.length === 0 ? (
+    <Hero eyebrow="Welcome to STUDIO" art={sketch} artKind="sketch"
+      title={<>Hey {name}, settle in and <span className="mk">get ready</span><span className="tp">.</span></>}
+      sub="No quests yet — your first one shows up here the moment it unlocks."
+      actions={<><button className="btn primary big" onClick={() => setPage('quests')}>Explore your modules <ArrowRight /></button><button className="textlink" onClick={() => setPage('map')}>Take the tour</button></>} />
+  ) : overdue ? (
+    <Hero eyebrow={eyebrow} art={handles} alert
+      title={<>Hey {name}, let’s get back <span className="mk">on track</span><span className="tp">.</span></>}
+      sub={<><b>Overdue:</b> {overdue.title} was due {humanDue(overdue.due, now)}.</>}
+      actions={<><button className="btn primary big" onClick={() => openQuest(overdue)}>Resume work <ArrowRight /></button><button className="textlink" onClick={() => setPage('notifications')}>View deadlines</button></>} />
+  ) : first ? (
+    <Hero eyebrow={eyebrow} art={handles}
+      title={<>Hey {name}, let’s <span className="mk">make</span> something<span className="tp">.</span></>}
+      sub={<>Next up: <b>{first.title}</b>, due {humanDue(first.due, now)}.</>}
+      actions={<><button className="btn primary big" onClick={() => openQuest(first)}>Continue your quest <ArrowRight /></button><button className="textlink" onClick={() => setPage('notifications')}>View deadlines</button></>} />
+  ) : (
+    <Hero eyebrow={eyebrow} art={handles}
+      title={<>Nice work, {name}. You’re <span className="mk">all caught up</span><span className="tp">.</span></>}
+      sub="Nothing is due right now — a good moment to polish your portfolio."
+      actions={<><button className="btn primary big" onClick={() => setPage('portfolio')}>Open portfolio <ArrowRight /></button><button className="textlink" onClick={() => setPage('competitions')}>Browse competitions</button></>} />
+  );
+
   return (
-    <>
-      <PageHead title={`Hi ${user.name.split(' ')[0]} 👋`} sub="Your quests, rank and what’s due next." laws={['Zeigarnik — open quests and the next-rank bar pull you back', 'Fitts — “Continue” sits on each course card']} />
-      <div className="col">
-        <div className="hero">
-          <div className="row between wrap">
-            <div><div className="small" style={{ opacity: .85 }}>CURRENT RANK</div><h1 style={{ fontSize: 34 }}>🏅 {rank.name}</h1></div>
-            <div className="stat" style={{ textAlign: 'right' }}><b style={{ fontSize: 40 }}>{xp} XP</b><span style={{ color: '#fff', opacity: .85 }}>{next ? `${next.minXp - xp} XP to ${next.name}` : 'Top rank reached'}</span></div>
-          </div>
-          <div style={{ marginTop: 12 }}><div className="bar xp" style={{ background: 'rgba(255,255,255,.3)' }}><i style={{ width: `${pct * 100}%` }} /></div></div>
-        </div>
-        <div className="grid2">
-          <Card title="Your courses">
-            <div className="col">{db.courses.filter((c) => user.courseIds.includes(c.id)).map((c) => {
-              const us = allUnits.filter((u) => u.task.courseId === c.id);
-              const done = us.filter((u) => u.status === 'complete').length;
-              return (
-                <div key={c.id} className="card region" style={courseId === c.id ? { borderColor: 'var(--primary)' } : undefined}>
-                  <div className="row between wrap"><div><b>{c.code}</b> · {c.title}</div><button className="btn primary" onClick={() => { setCourse(c.id); setPage('quests'); }}>Continue →</button></div>
-                  <div className="row" style={{ marginTop: 8 }}><span className="small">{done}/{us.length} quests</span><div className="grow"><Bar value={us.length ? done / us.length : 0} /></div></div>
-                </div>);
-            })}</div>
-          </Card>
-          <Card title="Next up">
-            {nextUp.length === 0 && <p className="muted">You’re all caught up — check feedback or competitions.</p>}
-            {nextUp.map((u) => { const cd = countdown(u.due, now); return (
-              <div key={u.unitId} className={`row between ${u.overdue ? 'overdue' : ''}`} style={{ padding: '8px 10px', borderBottom: '1px solid var(--line)', borderRadius: 8 }}>
-                <div><b>{u.title}</b><div className="small muted">{u.status === 'revision' ? '🔁 revision requested' : '📝 to do'} · <span className={cd.urgent ? 'err' : ''}>⏱ {cd.text}</span></div></div>
-                <button className="btn sm primary" onClick={() => { setCourse(u.task.courseId); setPage('quests'); }}>Open</button>
-              </div>); })}
-          </Card>
-          <Card title={`Reminders (${reminders.length})`} actions={<button className="btn sm" onClick={() => setPage('notifications')}>All notifications</button>}>
-            {reminders.length === 0 && <p className="muted small">Nothing due soon.</p>}
-            {reminders.slice(0, 5).map((r) => <div key={r.id} className={`row between small ${r.urgent ? 'overdue' : ''}`} style={{ padding: '6px 8px', borderRadius: 8 }}><span>{r.kind === 'competition' ? '🏁' : r.kind === 'peer' ? '👥' : '⏰'} {r.title}</span><span className={r.urgent ? 'err' : 'muted'}>{countdown(r.dueAt, now).text}</span></div>)}
-          </Card>
-          <Card title="Skill tracks (PSOs)" actions={<button className="btn sm" onClick={() => setPage('xp')}>Details</button>}>
-            {psos.map((p) => <div key={p.key} className="col" style={{ gap: 2, marginBottom: 6 }}><div className="row between small"><span><b>{p.key}</b> {p.title}</span><span>{att[p.key] !== undefined ? `${Math.round(att[p.key])}%` : <Badge kind="gray">not started</Badge>}</span></div><Bar value={(att[p.key] ?? 0) / 100} thin /></div>)}
-          </Card>
-        </div>
+    <div className="col" style={{ gap: 28 }}>
+      {hero}
+
+      <div className="strip" aria-label="Your status">
+        <button className="rankbox" onClick={() => setPage('xp')} aria-label={`Rank ${rank.name}, ${xp} XP`}>
+          <span className="pin" aria-hidden><Hammer /></span>
+          <span className="top"><b>{rank.name}</b><span className="meta">{xp} XP{next ? ` · ${next.minXp - xp} to ${next.name}` : ' · top rank'}</span></span>
+          <Bar value={pct} kind="xp" />
+        </button>
+        <button className="statchip butter" onClick={() => setPage('quests')}><Compass aria-hidden /><span><b>{open.length}</b><span>open quest{open.length === 1 ? '' : 's'}</span></span></button>
+        <button className="statchip sky" onClick={() => setPage('feedback')}><MessageSquareText aria-hidden /><span><b>{unread}</b><span>new feedback</span></span></button>
+        <button className="statchip blush" onClick={() => setPage('peer')}><Users aria-hidden /><span><b className="word">Peer review</b><span>{peer ? `due ${humanDue(peer.dueAt, now)}` : 'all submitted'}</span></span></button>
       </div>
-    </>
+
+      <section>
+        <div className="section-h"><h2>Your modules</h2><button className="textlink" onClick={() => setPage('quests')}>Quest map <ArrowRight /></button></div>
+        <div className="modgrid">
+          {myCourses.map((c, i) => {
+            const us = allUnits.filter((u) => u.task.courseId === c.id);
+            const done = us.filter((u) => u.status === 'complete').length;
+            const I = MOD_ICON[i % MOD_ICON.length];
+            return (
+              <button key={c.id} className={`modcard ${courseId === c.id ? 'on' : ''}`} onClick={() => { setCourse(c.id); setPage('quests'); }}>
+                <span className={`thumb ${MOD_TINT[i % MOD_TINT.length]}`} aria-hidden><I /></span>
+                <span><span className="code">{c.code}</span><span className="t" style={{ display: 'block' }}>{c.title}</span>
+                  <span className="prog"><Bar value={us.length ? done / us.length : 0} thin /><span>{done}/{us.length} quests</span></span></span>
+              </button>);
+          })}
+        </div>
+      </section>
+
+      <div className="grid2">
+        <Card title="Next up" actions={<button className="btn sm ghost" onClick={() => setPage('quests')}>All quests</button>}>
+          {actionable.length === 0 && <p className="muted">You’re all caught up — check feedback or competitions.</p>}
+          <div className="list">
+            {actionable.slice(0, 3).map((u) => (
+              <div key={u.unitId} className="li">
+                <span className={`ic ${u.overdue ? 'late' : ''}`} aria-hidden>{u.status === 'revision' ? <RotateCcw /> : <PencilRuler />}</span>
+                <span className="tx"><b>{u.title}</b><span>{db.courses.find((c) => c.id === u.task.courseId)?.code} · {u.status === 'revision' ? 'revision requested' : 'to do'}</span></span>
+                <Due iso={u.due} now={now} />
+                <button className="btn sm" onClick={() => openQuest(u)}>Open</button>
+              </div>))}
+          </div>
+        </Card>
+        <Card title="Latest feedback" actions={<button className="btn sm ghost" onClick={() => setPage('feedback')}>Inbox</button>}>
+          {latest.length === 0 && <p className="muted">No feedback yet — submit a quest to start the loop.</p>}
+          <div className="list">
+            {latest.map((f) => {
+              const t = db.tasks.find((x) => x.id === unitTask(f.unitId));
+              return (
+                <div key={f.id} className={`li ${f.read ? '' : 'unread'}`}>
+                  <span className="ic" aria-hidden><MessageSquareText /></span>
+                  <span className="tx"><b>{t?.title ?? 'Feedback'} · v{f.version}</b><span>{fmtDateTime(f.createdAt)}{f.read ? '' : ' · unread'}</span></span>
+                  <Badge kind={f.decision === 'pass' ? 'ok' : 'dangerweak'}>{f.total}% · {f.decision === 'pass' ? 'passed' : 'revise'}</Badge>
+                </div>);
+            })}
+          </div>
+        </Card>
+      </div>
+    </div>
   );
 }

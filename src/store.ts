@@ -42,6 +42,8 @@ interface State {
 
 const prefs = api.loadPrefs();
 let flushing = false;
+/** Where each side lands: students on their dashboard hero, staff on their home hero. */
+export const homeOf = (role: string) => (role === 'student' ? 'dashboard' : 'home');
 
 function makeCmd(getActor: () => User, set: (fn: (s: State) => Partial<State>) => void, get: () => State, quiet = false): Cmd {
   const out: Record<string, unknown> = {};
@@ -83,18 +85,21 @@ async function flushXp(set: (fn: (s: State) => Partial<State>) => void, get: () 
 
 export const useStore = create<State>((set, get) => {
   const actor = () => get().db.users.find((u) => u.id === get().userId)!;
+  const db = api.loadDb();
+  const startRole = db.users.find((u) => u.id === prefs.userId)?.role ?? 'student';
   return {
-    db: api.loadDb(),
+    db,
     userId: prefs.userId,
     courseId: prefs.courseId,
-    page: location.hash.replace(/^#\//, '') || 'map',
+    page: location.hash.replace(/^#\//, '') || homeOf(startRole),
     setPage: (p) => { location.hash = `/${p}`; set(() => ({ page: p })); },
     setUser: (id) => {
       const u = get().db.users.find((x) => x.id === id)!;
       const courseId = u.courseIds.includes(get().courseId) ? get().courseId : u.courseIds[0];
       api.savePrefs({ userId: id, courseId });
-      set(() => ({ userId: id, courseId, page: 'map' }));
-      location.hash = '/map';
+      const page = homeOf(u.role);
+      set(() => ({ userId: id, courseId, page }));
+      location.hash = `/${page}`;
     },
     setCourse: (id) => { api.savePrefs({ userId: get().userId, courseId: id }); set(() => ({ courseId: id })); },
     reset: () => { set(() => ({ db: api.resetDb() })); toast.success('Demo data reset to seed'); },
@@ -118,7 +123,7 @@ window.addEventListener('storage', (e) => {
     toast.info('This was just updated in another window', { description: 'Latest data loaded. Edits made against an older version are rejected, never silently overwritten.' });
   } catch { /* ignore */ }
 });
-window.addEventListener('hashchange', () => useStore.setState({ page: location.hash.replace(/^#\//, '') || 'map' }));
+window.addEventListener('hashchange', () => { const s = useStore.getState(); useStore.setState({ page: location.hash.replace(/^#\//, '') || homeOf(s.db.users.find((u) => u.id === s.userId)?.role ?? 'student') }); });
 
 export const useDb = () => useStore((s) => s.db);
 export const useCmd = () => useStore((s) => s.cmd);
